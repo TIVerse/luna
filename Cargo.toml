@@ -2,9 +2,11 @@
 name = "luna"
 version = "0.1.0"
 edition = "2021"
-authors = ["LUNA Team"]
+authors = ["Eshan Roy <m.eshanized@gmail.com>"]
 description = "Privacy-first offline voice-controlled desktop assistant"
 license = "MIT"
+repository = "https://github.com/TIVerse/luna"
+homepage = "https://github.com/TIVerse/luna"
 
 [dependencies]
 # Async runtime

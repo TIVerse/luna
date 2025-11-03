@@ -46,7 +46,7 @@ brew install portaudio
 
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/TIVerse/luna.git
 cd luna
 
 # Build
@@ -148,5 +148,11 @@ Contributions welcome! Please read CONTRIBUTING.md first.
 ## Support
 
 - 📚 Documentation: `docs/`
-- 🐛 Issues: GitHub Issues
-- 💬 Discussions: GitHub Discussions
+- 🐛 Issues: [GitHub Issues](https://github.com/TIVerse/luna/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/TIVerse/luna/discussions)
+
+## Author
+
+**Eshan Roy** - [eshanized](https://github.com/eshanized)
+- Organization: [TIVerse](https://github.com/TIVerse)
+- Email: m.eshanized@gmail.com

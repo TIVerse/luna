@@ -56,7 +56,7 @@ brew install portaudio
 
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/TIVerse/luna.git
 cd luna
 
 # Build
@@ -1220,7 +1220,7 @@ TOTAL                     ~43,000 lines
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Clone repository
-git clone https://github.com/yourusername/luna.git
+git clone https://github.com/TIVerse/luna.git
 cd luna
 
 # Install system dependencies

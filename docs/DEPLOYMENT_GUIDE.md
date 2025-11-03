@@ -46,7 +46,7 @@ sudo pacman -S \
 
 **1. Clone and Build:**
 ```bash
-git clone https://github.com/yourusername/luna.git
+git clone https://github.com/TIVerse/luna.git
 cd luna
 
 # Build release version
