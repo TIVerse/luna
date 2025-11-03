@@ -120,11 +120,18 @@ impl MultiIntentParser {
         let normalized = text.to_lowercase();
 
         // Check for coordinators in order of precedence
-        if normalized.contains(" and then ") || normalized.contains(" then ") {
+        if normalized.contains(" and then ") {
             let parts: Vec<String> = text
-                .split(&[',', ';'][..])
-                .chain(text.split(" and then "))
-                .chain(text.split(" then "))
+                .split(" and then ")
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .collect();
+            return Ok((parts, CoordinationType::Sequential));
+        }
+        
+        if normalized.contains(" then ") {
+            let parts: Vec<String> = text
+                .split(" then ")
                 .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty())
                 .collect();

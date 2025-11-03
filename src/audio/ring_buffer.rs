@@ -42,13 +42,14 @@ impl LockFreeRingBuffer {
     pub fn push_samples(&self, samples: &[f32]) {
         let mut rb = self.rb.lock();
 
-        // Remove old samples if needed
-        while rb.len() + samples.len() > self.capacity {
-            rb.pop_front();
-        }
-
         // Push new samples
         rb.extend(samples);
+
+        // Remove old samples if we exceeded capacity
+        if rb.len() > self.capacity {
+            let to_remove = rb.len() - self.capacity;
+            rb.drain(..to_remove);
+        }
     }
 
     /// Get the last N samples (consumer side)

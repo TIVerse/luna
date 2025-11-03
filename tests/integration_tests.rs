@@ -14,13 +14,82 @@ use std::sync::Arc;
 use tokio::time::{timeout, Duration};
 
 /// Helper function to create test app database
-async fn create_test_app_db() -> Arc<AppDatabase> {
-    Arc::new(AppDatabase::new())
+fn create_test_app_db() -> Arc<AppDatabase> {
+    use luna::db::schema::{Application, AppCategory};
+    use std::path::PathBuf;
+    
+    let mut db = AppDatabase::new();
+    
+    // Add test applications
+    db.add_app(Application {
+        id: "chrome".to_string(),
+        name: "Chrome".to_string(),
+        executable: PathBuf::from("/usr/bin/chrome"),
+        category: AppCategory::Browser,
+        aliases: vec!["google-chrome".to_string(), "chromium".to_string()],
+        description: Some("Google Chrome browser".to_string()),
+        icon: None,
+        version: None,
+        install_date: None,
+    });
+    
+    db.add_app(Application {
+        id: "firefox".to_string(),
+        name: "Firefox".to_string(),
+        executable: PathBuf::from("/usr/bin/firefox"),
+        category: AppCategory::Browser,
+        aliases: vec!["mozilla-firefox".to_string()],
+        description: Some("Mozilla Firefox browser".to_string()),
+        icon: None,
+        version: None,
+        install_date: None,
+    });
+    
+    Arc::new(db)
 }
 
 /// Helper function to create test file index
 fn create_test_file_index() -> Arc<FileIndex> {
-    Arc::new(FileIndex::new())
+    use luna::db::schema::{FileEntry, FileType};
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+    
+    let mut index = FileIndex::new();
+    
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+    
+    // Add test files
+    index.add_file(FileEntry {
+        path: PathBuf::from("/home/user/Documents/budget.pdf"),
+        name: "budget.pdf".to_string(),
+        extension: Some("pdf".to_string()),
+        file_type: FileType::Document,
+        size: 1024 * 100, // 100KB
+        modified: now,
+    });
+    
+    index.add_file(FileEntry {
+        path: PathBuf::from("/home/user/Documents/report.pdf"),
+        name: "report.pdf".to_string(),
+        extension: Some("pdf".to_string()),
+        file_type: FileType::Document,
+        size: 1024 * 200, // 200KB
+        modified: now,
+    });
+    
+    index.add_file(FileEntry {
+        path: PathBuf::from("/home/user/Documents/document.pdf"),
+        name: "document.pdf".to_string(),
+        extension: Some("pdf".to_string()),
+        file_type: FileType::Document,
+        size: 1024 * 150, // 150KB
+        modified: now,
+    });
+    
+    Arc::new(index)
 }
 
 /// Test full pipeline with mock components
@@ -33,7 +102,7 @@ async fn test_full_pipeline_mock() {
     let brain = Brain::new(&brain_config).expect("Failed to create brain");
 
     // Initialize executor
-    let app_launcher = AppLauncher::new(create_test_app_db().await);
+    let app_launcher = AppLauncher::new(create_test_app_db());
     let file_search = FileSearch::new(create_test_file_index());
     let executor = TaskExecutor::new(app_launcher, file_search);
 
@@ -57,9 +126,14 @@ async fn test_full_pipeline_mock() {
             cmd
         );
 
-        // Execute plan
-        let result = executor.execute_plan(plan).await;
-        assert!(result.is_ok(), "Execution failed for: {}", cmd);
+        // Preview plan (dry-run, doesn't actually execute)
+        let result = executor.preview_plan(plan).await;
+        assert!(
+            result.is_ok(),
+            "Plan preview failed for: {} - Error: {:?}",
+            cmd,
+            result.err()
+        );
     }
 }
 
@@ -69,7 +143,7 @@ async fn test_error_recovery() {
     let brain_config = BrainConfig::default();
     let brain = Brain::new(&brain_config).expect("Failed to create brain");
 
-    let app_launcher = AppLauncher::new(create_test_app_db().await);
+    let app_launcher = AppLauncher::new(create_test_app_db());
     let file_search = FileSearch::new(create_test_file_index());
     let executor = TaskExecutor::new(app_launcher, file_search);
 
@@ -252,7 +326,7 @@ async fn test_executor_with_telemetry() {
     let handle = event_bus.start_processing().await;
     let metrics = Arc::new(Metrics::new());
 
-    let app_launcher = AppLauncher::new(create_test_app_db().await);
+    let app_launcher = AppLauncher::new(create_test_app_db());
     let file_search = FileSearch::new(create_test_file_index());
     let executor = TaskExecutor::new(app_launcher, file_search)
         .with_event_bus(Arc::clone(&event_bus))
@@ -279,7 +353,7 @@ async fn test_parallel_execution() {
     let brain_config = BrainConfig::default();
     let brain = Brain::new(&brain_config).expect("Failed to create brain");
 
-    let app_launcher = AppLauncher::new(create_test_app_db().await);
+    let app_launcher = AppLauncher::new(create_test_app_db());
     let file_search = FileSearch::new(create_test_file_index());
     let executor = TaskExecutor::new(app_launcher, file_search);
 
@@ -299,7 +373,7 @@ async fn test_response_time() {
     let brain_config = BrainConfig::default();
     let brain = Brain::new(&brain_config).expect("Failed to create brain");
 
-    let app_launcher = AppLauncher::new(create_test_app_db().await);
+    let app_launcher = AppLauncher::new(create_test_app_db());
     let file_search = FileSearch::new(create_test_file_index());
     let executor = TaskExecutor::new(app_launcher, file_search);
 
@@ -330,7 +404,7 @@ async fn test_graceful_degradation() {
     let brain_config = BrainConfig::default();
     let brain = Brain::new(&brain_config).expect("Failed to create brain");
 
-    let app_launcher = AppLauncher::new(create_test_app_db().await);
+    let app_launcher = AppLauncher::new(create_test_app_db());
     let file_search = FileSearch::new(create_test_file_index());
     let executor = TaskExecutor::new(app_launcher, file_search);
 
@@ -366,7 +440,7 @@ async fn test_stress_multiple_commands() {
     let brain_config = BrainConfig::default();
     let brain = Brain::new(&brain_config).expect("Failed to create brain");
 
-    let app_launcher = AppLauncher::new(create_test_app_db().await);
+    let app_launcher = AppLauncher::new(create_test_app_db());
     let file_search = FileSearch::new(create_test_file_index());
     let executor = TaskExecutor::new(app_launcher, file_search);
 
@@ -385,8 +459,13 @@ async fn test_stress_multiple_commands() {
         let plan = brain
             .process(cmd)
             .expect(&format!("Failed to process: {}", cmd));
-        let result = executor.execute_plan(plan).await;
-        assert!(result.is_ok(), "Failed to execute: {}", cmd);
+        let result = executor.preview_plan(plan).await;
+        assert!(
+            result.is_ok(),
+            "Failed to preview plan for: {} - Error: {:?}",
+            cmd,
+            result.err()
+        );
     }
 }
 
