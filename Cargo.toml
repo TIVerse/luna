@@ -1,0 +1,150 @@
+[package]
+name = "luna"
+version = "0.1.0"
+edition = "2021"
+authors = ["LUNA Team"]
+description = "Privacy-first offline voice-controlled desktop assistant"
+license = "MIT"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+serde_yaml = "0.9"  # Grammar config files
+
+# Configuration (enhanced with layering and hot-reload)
+config = "0.13"
+notify = "6.1"
+
+# Logging (structured with JSON support)
+log = "0.4"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+
+# Metrics (production-grade with Prometheus exporter)
+metrics = "0.21"
+metrics-exporter-prometheus = { version = "0.12", optional = true }
+
+# CLI (for doctor, index, events subcommands)
+clap = { version = "4.4", features = ["derive", "cargo"] }
+
+# System utilities
+dirs = "5.0"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# String matching
+strsim = "0.11"
+
+# NLP/Regex (optimized with RegexSet)
+regex = "1.10"
+once_cell = "1.19"
+aho-corasick = "1.1"  # Fast multi-pattern matching for slots
+phf = { version = "0.11", features = ["macros"] }  # Perfect hash for static lookups
+
+# Async traits
+async-trait = "0.1"
+
+# System info
+num_cpus = "1.16"
+sysinfo = "0.30"  # System resource monitoring
+
+# Database (SQLite with indices)
+rusqlite = { version = "0.30", features = ["bundled"], optional = true }
+lru = "0.12"
+
+# Collections
+dashmap = "5.5"  # Concurrent HashMap
+
+# Audio input
+cpal = "0.15"
+hound = "3.5"
+
+# Lock-free ring buffer for real-time audio
+ringbuf = "0.4"
+
+# High-quality resampling
+rubato = "0.15"
+
+# Wake word detection (install manually for production)
+# pv_porcupine = { version = "2.2", optional = true }  # Uncomment when available
+
+# WebRTC Audio Processing (VAD, NS, AGC, AEC)
+webrtc-vad = { version = "0.4", optional = true }
+
+# RNNoise for noise suppression
+nnnoiseless = { version = "0.5", optional = true }
+
+# Signal processing
+rustfft = "6.1"
+
+# Async channels
+async-channel = "2.1"
+futures = "0.3"
+
+# Atomic operations for lock-free structures
+crossbeam = "0.8"
+parking_lot = "0.12"
+
+# Action execution (Phase 4)
+open = "5.0"            # Open files/URLs
+notify-rust = "4.10"    # System notifications  
+clipboard = "0.5"       # Clipboard operations
+urlencoding = "2.1"     # URL encoding for web search
+
+# Text-to-speech (Phase 6)
+tts = "0.26"            # Text-to-speech synthesis
+
+# Multilingual support (optional)
+whatlang = { version = "0.16", optional = true }
+
+# On-device ML (optional - tiny models for fallback)
+candle-core = { version = "0.3", optional = true }
+tokenizers = { version = "0.15", optional = true }
+
+# Platform-specific dependencies
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.52", features = ["Win32_System_Threading", "Win32_UI_WindowsAndMessaging", "Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_Registry"] }
+winreg = "0.52"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { version = "0.27", features = ["process", "signal", "mount"] }
+procfs = "0.16"  # Linux process information
+x11rb = { version = "0.13", features = ["all-extensions"], optional = true }  # X11 window management
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.9"
+cocoa = "0.25"
+objc = "0.2"
+
+[features]
+default = ["webrtc-audio", "clipboard", "notifications"]
+prometheus = ["metrics-exporter-prometheus"]
+sqlite = ["rusqlite"]
+# porcupine = ["pv_porcupine"]  # Uncomment when pv_porcupine is available
+webrtc-audio = ["webrtc-vad"]
+rnnoise = ["nnnoiseless"]
+audio-pro = ["webrtc-audio", "rnnoise"]  # Add "porcupine" when available
+multilingual = ["whatlang"]
+ml = ["candle-core", "tokenizers"]
+clipboard = []  # Clipboard support
+notifications = []  # Desktop notifications
+x11 = ["x11rb"]  # X11 window management (Linux)
+full = ["prometheus", "sqlite", "audio-pro", "multilingual", "clipboard", "notifications", "x11"]
+god-mode = ["full", "ml"]  # All enhancements enabled
+phase5-god = ["full"]  # Phase 5 God-Level OS Integration
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.8"
+proptest = "1.4"
+insta = "1.34"

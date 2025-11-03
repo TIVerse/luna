@@ -1,0 +1,79 @@
+# LUNA Voice Assistant Configuration
+# Default settings for the voice assistant
+
+[audio]
+wake_words = ["hey luna", "okay luna"]
+sample_rate = 16000
+channels = 1
+buffer_size = 1024
+silence_threshold = 0.03
+recording_timeout_secs = 5
+
+# God-Level Audio Enhancements
+input_device = ""                     # Device name/ID (empty = default)
+preferred_sample_rate = 48000         # Device sample rate
+target_sample_rate = 16000            # STT/wake word sample rate
+frame_ms = 10                         # Frame duration in ms
+pre_roll_ms = 300                     # Pre-roll capture (ms)
+post_roll_ms = 200                    # Post-roll capture (ms)
+wake_word_engine = "energy"           # porcupine|energy
+vad_engine = "webrtc"                 # webrtc|silero|rms
+vad_aggressiveness = 2                # 0-3 (WebRTC)
+noise_suppression = true              # Enable NS
+agc = true                            # Enable AGC
+aec = false                           # Enable AEC
+drop_policy = "DropOldest"            # DropOldest|DropNewest|Block
+ring_buffer_capacity = 48000          # Samples (1s @ 48kHz)
+
+[brain]
+whisper_model_path = "models/whisper-base.bin"
+response_timeout_ms = 1000
+context_window_size = 10
+confidence_threshold = 0.7
+wake_word_sensitivity = 0.5
+stt_engine = "simulate"               # whisper|simulate
+stt_threads = 4
+
+[system]
+log_level = "info"
+data_dir = ""  # Will use OS default if empty
+cache_dir = ""  # Will use OS default if empty
+enable_telemetry = false
+
+[paths]
+search_paths = []  # Will use OS defaults if empty
+exclude_paths = ["node_modules", ".git", "target", ".cache"]
+project_dirs = []  # Will use OS defaults if empty
+
+[performance]
+max_threads = 4
+cache_size_mb = 256
+index_update_interval_secs = 300
+
+[tts]
+# TTS engine: "os" (native OS TTS), "coqui" (future)
+engine = "os"
+# Default voice (empty = system default)
+default_voice = ""
+# Speech rate (0.1-10.0, 1.0 = normal)
+rate = 1.0
+# Speech pitch (0.0-2.0, 1.0 = normal)
+pitch = 1.0
+# Volume (0.0-1.0)
+volume = 0.8
+# Enable barge-in (interrupt on user speech)
+barge_in = true
+# Duck system audio while speaking
+duck_system_audio = false
+# Enable earcons (UI sounds)
+earcons_enabled = false
+
+[context]
+# Enable persistent context across sessions
+persist = true
+# Maximum context entries to keep
+max_entries = 500
+# Summarize history every N entries
+summary_every = 50
+# Context file path (empty = use default data dir)
+persist_path = ""

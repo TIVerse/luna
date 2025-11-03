@@ -1,0 +1,24 @@
+# Rust build artifacts
+/target
+Cargo.lock
+
+# IDE files
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# LUNA specific
+models/*.bin
+models/*.ppn
+*.log
+logs/*.log
+
+# Data directories
+data/
+cache/

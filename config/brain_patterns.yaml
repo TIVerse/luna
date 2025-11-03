@@ -1,0 +1,215 @@
+# LUNA Brain Patterns - Declarative Grammar Configuration
+# Hot-reloadable pattern definitions for intent recognition
+
+version: "1.0"
+
+# Intent definitions with patterns and entity extraction
+intents:
+  # Application Control
+  - name: LaunchApp
+    priority: 100
+    patterns:
+      - pattern: "(?:open|launch|start|run)\\s+(.+)"
+        entities:
+          app_name: "$1"
+      - pattern: "show me (.+)"
+        entities:
+          app_name: "$1"
+    examples:
+      - "open chrome"
+      - "launch firefox"
+      - "start vscode"
+      
+  - name: CloseApp
+    priority: 100
+    patterns:
+      - pattern: "(?:close|quit|exit|kill)\\s+(.+)"
+        entities:
+          app_name: "$1"
+    examples:
+      - "close chrome"
+      - "quit firefox"
+      
+  # File Operations
+  - name: FindFile
+    priority: 90
+    patterns:
+      - pattern: "(?:find|search\\s+for|locate)\\s+(.+)"
+        entities:
+          file_name: "$1"
+    examples:
+      - "find budget.pdf"
+      - "search for report"
+      
+  - name: OpenFolder
+    priority: 85
+    patterns:
+      - pattern: "(?:open|show\\s+me)\\s+(?:the\\s+)?(.+?)\\s+folder"
+        entities:
+          folder_name: "$1"
+    examples:
+      - "open downloads folder"
+      - "show me documents folder"
+      
+  # System Control
+  - name: VolumeControl
+    priority: 95
+    patterns:
+      - pattern: "(?:volume|sound)\\s+(up|down|mute|unmute)"
+        entities:
+          action: "$1"
+      - pattern: "(?:turn\\s+)?(?:up|down)\\s+(?:the\\s+)?volume"
+        entities:
+          action: "volume_change"
+      - pattern: "^mute$"
+        entities:
+          action: "mute"
+    examples:
+      - "volume up"
+      - "turn down volume"
+      - "mute"
+      
+  - name: SystemControl
+    priority: 95
+    patterns:
+      - pattern: "(?:lock|sleep|shutdown|restart)\\s*(?:computer|system)?"
+        entities:
+          action: "system_action"
+    examples:
+      - "lock computer"
+      - "shutdown"
+      - "restart"
+      
+  # Media Control
+  - name: MediaControl
+    priority: 90
+    patterns:
+      - pattern: "(play|pause|stop|next|previous)(?:\\s+(?:song|music|track))?"
+        entities:
+          action: "$1"
+    examples:
+      - "play music"
+      - "pause"
+      - "next track"
+      
+  # Web & Search
+  - name: SearchWeb
+    priority: 85
+    patterns:
+      - pattern: "(?:search\\s+(?:for|the\\s+web\\s+for)|google)\\s+(.+)"
+        entities:
+          query: "$1"
+    examples:
+      - "search for rust tutorials"
+      - "google machine learning"
+      
+  # Time & Calendar
+  - name: GetTime
+    priority: 100
+    patterns:
+      - pattern: "(?:what\\s+time\\s+is\\s+it|current\\s+time|tell\\s+me\\s+the\\s+time)"
+        entities: {}
+    examples:
+      - "what time is it"
+      - "current time"
+      
+  - name: GetDate
+    priority: 100
+    patterns:
+      - pattern: "(?:what(?:'s|\\s+is)\\s+the\\s+date|today(?:'s|\\s+)date|current\\s+date)"
+        entities: {}
+    examples:
+      - "what's the date"
+      - "today's date"
+      
+  # Reminders & Notes
+  - name: Reminder
+    priority: 85
+    patterns:
+      - pattern: "remind\\s+me\\s+(?:about\\s+)?(.+?)\\s+in\\s+(.+)"
+        entities:
+          message: "$1"
+          duration: "$2"
+    examples:
+      - "remind me about meeting in 30 minutes"
+      - "remind me call John in 2 hours"
+      
+  - name: Note
+    priority: 80
+    patterns:
+      - pattern: "(?:take\\s+a\\s+note|note|write\\s+down)\\s*:?\\s*(.+)"
+        entities:
+          content: "$1"
+    examples:
+      - "take a note buy milk"
+      - "write down ideas for project"
+      
+  # Questions
+  - name: Question
+    priority: 70
+    patterns:
+      - pattern: "(?:what|how|why|when|where|who)\\s+.+"
+        entities:
+          question: "$0"
+    examples:
+      - "what is rust"
+      - "how do I build this"
+
+# Synonyms for entity normalization
+synonyms:
+  apps:
+    chrome:
+      - "google chrome"
+      - "chrome browser"
+    firefox:
+      - "mozilla firefox"
+      - "firefox browser"
+    vscode:
+      - "visual studio code"
+      - "vs code"
+      - "code"
+    terminal:
+      - "term"
+      - "console"
+      - "shell"
+  
+  actions:
+    increase:
+      - "up"
+      - "raise"
+      - "higher"
+    decrease:
+      - "down"
+      - "lower"
+      - "reduce"
+
+# Slot types for entity validation
+slots:
+  - name: app_name
+    type: string
+    validation: known_app
+    
+  - name: file_name
+    type: string
+    validation: file_like
+    
+  - name: folder_name
+    type: string
+    validation: folder_like
+    
+  - name: duration
+    type: duration
+    parser: time_helpers
+    
+  - name: action
+    type: string
+    values:
+      - up
+      - down
+      - mute
+      - unmute
+      - play
+      - pause
+      - stop
+      - next
+      - previous

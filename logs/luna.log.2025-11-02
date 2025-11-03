@@ -1,0 +1,95 @@
+[2m2025-11-02T09:38:42.577594Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🌙 LUNA Voice Assistant starting up...
+[2m2025-11-02T09:38:42.577625Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Version: 0.1.0
+[2m2025-11-02T09:38:42.577641Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Configuration loaded successfully
+[2m2025-11-02T09:38:42.577652Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Sample Rate: 16000 Hz
+[2m2025-11-02T09:38:42.577665Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Wake Words: ["hey luna", "okay luna"]
+[2m2025-11-02T09:38:42.577676Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Log Level: info
+[2m2025-11-02T09:38:42.577686Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Data Directory: 
+[2m2025-11-02T09:38:42.577697Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Initializing components...
+[2m2025-11-02T09:38:42.577708Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ All systems ready (Phase 1 foundation complete)
+[2m2025-11-02T09:38:42.577720Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 👂 LUNA would be listening... (awaiting Phase 2+ implementation)
+[2m2025-11-02T09:38:42.577732Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Phase 1 foundation successfully implemented!
+[2m2025-11-02T09:38:42.577743Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Ready for Phase 2: Audio System implementation
+[2m2025-11-02T09:49:01.812834Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🌙 LUNA Voice Assistant starting up...
+[2m2025-11-02T09:49:01.812900Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Version: 0.1.0
+[2m2025-11-02T09:49:01.812915Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Configuration loaded successfully
+[2m2025-11-02T09:49:01.812926Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Sample Rate: 16000 Hz
+[2m2025-11-02T09:49:01.812939Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Wake Words: ["hey luna", "okay luna"]
+[2m2025-11-02T09:49:01.812955Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Log Level: info
+[2m2025-11-02T09:49:01.812970Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Data Directory: 
+[2m2025-11-02T09:49:01.812984Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Initializing components...
+[2m2025-11-02T09:49:01.813000Z[0m [32m INFO[0m [2mluna::audio[0m[2m:[0m Initializing audio system...
+[2m2025-11-02T09:49:01.813040Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m ✅ Wake word detector initialized (stub mode)
+[2m2025-11-02T09:49:01.813059Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Keywords: ["hey luna", "okay luna"]
+[2m2025-11-02T09:49:01.813080Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Sensitivity: 0.5
+[2m2025-11-02T09:49:01.813100Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Note: Using energy-based detection. Upgrade to Porcupine for production.
+[2m2025-11-02T09:49:01.813126Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m ⚠️  Whisper model not found at: models/whisper-base.bin
+[2m2025-11-02T09:49:01.813145Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m ✅ Speech-to-text initialized (simulated mode)
+[2m2025-11-02T09:49:01.813164Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m    For production, download Whisper model:
+[2m2025-11-02T09:49:01.813182Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m    wget https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+[2m2025-11-02T09:49:01.813201Z[0m [32m INFO[0m [2mluna::audio[0m[2m:[0m ✅ Audio system initialized
+[2m2025-11-02T09:49:01.813217Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Audio system initialized
+[2m2025-11-02T09:49:01.813235Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ⚠️  Note: Running in simulated mode for speech-to-text
+[2m2025-11-02T09:49:01.813255Z[0m [32m INFO[0m [2mluna[0m[2m:[0m    For production, download Whisper model to: models/whisper-base.bin
+[2m2025-11-02T09:49:01.813274Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ All systems ready (Phase 1 & 2 complete)
+[2m2025-11-02T09:49:01.813292Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 👂 LUNA is ready to listen!
+[2m2025-11-02T09:49:01.813310Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Phase 1 & 2 successfully implemented!
+[2m2025-11-02T09:49:01.813339Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ Foundation complete
+[2m2025-11-02T09:49:01.813357Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ Audio system complete
+[2m2025-11-02T09:49:01.813376Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Ready for Phase 3: Brain/NLP System implementation
+[2m2025-11-02T09:58:58.152541Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🌙 LUNA Voice Assistant starting up...
+[2m2025-11-02T09:58:58.152575Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Version: 0.1.0
+[2m2025-11-02T09:58:58.152592Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Configuration loaded successfully
+[2m2025-11-02T09:58:58.152611Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Sample Rate: 16000 Hz
+[2m2025-11-02T09:58:58.152630Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Wake Words: ["hey luna", "okay luna"]
+[2m2025-11-02T09:58:58.152647Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Log Level: info
+[2m2025-11-02T09:58:58.152662Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Data Directory: 
+[2m2025-11-02T09:58:58.152677Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Initializing components...
+[2m2025-11-02T09:58:58.152689Z[0m [32m INFO[0m [2mluna::audio[0m[2m:[0m Initializing audio system...
+[2m2025-11-02T09:58:58.152717Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m ✅ Wake word detector initialized (stub mode)
+[2m2025-11-02T09:58:58.152735Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Keywords: ["hey luna", "okay luna"]
+[2m2025-11-02T09:58:58.152755Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Sensitivity: 0.5
+[2m2025-11-02T09:58:58.152773Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Note: Using energy-based detection. Upgrade to Porcupine for production.
+[2m2025-11-02T09:58:58.152796Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m ⚠️  Whisper model not found at: models/whisper-base.bin
+[2m2025-11-02T09:58:58.152812Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m ✅ Speech-to-text initialized (simulated mode)
+[2m2025-11-02T09:58:58.152824Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m    For production, download Whisper model:
+[2m2025-11-02T09:58:58.152837Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m    wget https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+[2m2025-11-02T09:58:58.152850Z[0m [32m INFO[0m [2mluna::audio[0m[2m:[0m ✅ Audio system initialized
+[2m2025-11-02T09:58:58.152862Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Audio system initialized
+[2m2025-11-02T09:58:58.152874Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ⚠️  Note: Running in simulated mode for speech-to-text
+[2m2025-11-02T09:58:58.152889Z[0m [32m INFO[0m [2mluna[0m[2m:[0m    For production, download Whisper model to: models/whisper-base.bin
+[2m2025-11-02T09:58:58.152903Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m Initializing brain system...
+[2m2025-11-02T09:58:58.170844Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m ✅ Brain system initialized
+[2m2025-11-02T09:58:58.170898Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Brain system initialized
+[2m2025-11-02T09:58:58.170912Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ All systems ready (Phase 1, 2 & 3 complete)
+[2m2025-11-02T09:58:58.170925Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 👂 LUNA is ready to listen!
+[2m2025-11-02T09:58:58.170936Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Testing brain system with sample commands...
+[2m2025-11-02T09:58:58.170949Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m 🧠 Processing: "open chrome"
+[2m2025-11-02T09:58:58.171157Z[0m [32m INFO[0m [2mluna::brain::command_parser[0m[2m:[0m Matched intent: LaunchApp, entities: {"app_name": "chrome"}
+[2m2025-11-02T09:58:58.171175Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Parsed intent: LaunchApp
+[2m2025-11-02T09:58:58.171208Z[0m [32m INFO[0m [2mluna::brain::intent_classifier[0m[2m:[0m Classified intent: LaunchApp with confidence: 1.00
+[2m2025-11-02T09:58:58.171243Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Confidence: 1.00
+[2m2025-11-02T09:58:58.171258Z[0m [32m INFO[0m [2mluna::brain::task_planner[0m[2m:[0m Planning tasks for intent: LaunchApp
+[2m2025-11-02T09:58:58.171272Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Plan: 1 steps
+[2m2025-11-02T09:58:58.171286Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   ✓ 'open chrome' → LaunchApp (1 steps)
+[2m2025-11-02T09:58:58.171298Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m 🧠 Processing: "volume up"
+[2m2025-11-02T09:58:58.171521Z[0m [32m INFO[0m [2mluna::brain::command_parser[0m[2m:[0m Matched intent: VolumeControl, entities: {"action": "up"}
+[2m2025-11-02T09:58:58.171535Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Parsed intent: VolumeControl
+[2m2025-11-02T09:58:58.171549Z[0m [32m INFO[0m [2mluna::brain::intent_classifier[0m[2m:[0m Classified intent: VolumeControl with confidence: 0.95
+[2m2025-11-02T09:58:58.171562Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Confidence: 0.95
+[2m2025-11-02T09:58:58.171573Z[0m [32m INFO[0m [2mluna::brain::task_planner[0m[2m:[0m Planning tasks for intent: VolumeControl
+[2m2025-11-02T09:58:58.171586Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Plan: 1 steps
+[2m2025-11-02T09:58:58.171598Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   ✓ 'volume up' → VolumeControl (1 steps)
+[2m2025-11-02T09:58:58.171611Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m 🧠 Processing: "what time is it"
+[2m2025-11-02T09:58:58.172150Z[0m [32m INFO[0m [2mluna::brain::command_parser[0m[2m:[0m Matched intent: GetTime, entities: {}
+[2m2025-11-02T09:58:58.172165Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Parsed intent: GetTime
+[2m2025-11-02T09:58:58.172178Z[0m [32m INFO[0m [2mluna::brain::intent_classifier[0m[2m:[0m Classified intent: GetTime with confidence: 0.95
+[2m2025-11-02T09:58:58.172190Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Confidence: 0.95
+[2m2025-11-02T09:58:58.172201Z[0m [32m INFO[0m [2mluna::brain::task_planner[0m[2m:[0m Planning tasks for intent: GetTime
+[2m2025-11-02T09:58:58.172212Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Plan: 1 steps
+[2m2025-11-02T09:58:58.172224Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   ✓ 'what time is it' → GetTime (1 steps)
+[2m2025-11-02T09:58:58.172238Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Phase 1, 2 & 3 successfully implemented!
+[2m2025-11-02T09:58:58.172250Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ Foundation complete
+[2m2025-11-02T09:58:58.172261Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ Audio system complete
+[2m2025-11-02T09:58:58.172272Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ Brain/NLP system complete
+[2m2025-11-02T09:58:58.172284Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Ready for Phase 4: Action Execution implementation
