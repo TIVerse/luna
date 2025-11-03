@@ -68,7 +68,8 @@ impl ClipboardManager {
     }
 
     pub fn search(&self, query: &str) -> Vec<&ClipboardEntry> {
-        self.history.iter()
+        self.history
+            .iter()
             .filter(|entry| {
                 if let ClipboardContent::Text(text) = &entry.content {
                     text.contains(query)

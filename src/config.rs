@@ -3,8 +3,8 @@
 //! Loads configuration from TOML files with environment variable overrides.
 //! Provides validation and default values for all settings.
 
-use crate::error::{LunaError, Result};
 use crate::config_error;
+use crate::error::{LunaError, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -51,7 +51,6 @@ pub struct AudioConfig {
     pub recording_timeout_secs: u64,
 
     // === God-Level Enhancement Settings ===
-    
     /// Input device name or ID (empty = default device)
     #[serde(default)]
     pub input_device: String,
@@ -127,15 +126,15 @@ pub struct BrainConfig {
     /// Minimum confidence threshold for command acceptance (0.0 - 1.0)
     #[serde(default = "default_confidence_threshold")]
     pub confidence_threshold: f32,
-    
+
     /// Wake word detection sensitivity (0.0 - 1.0, higher = more sensitive)
     #[serde(default = "default_wake_word_sensitivity")]
     pub wake_word_sensitivity: f32,
-    
+
     /// STT engine: "whisper", "simulate"
     #[serde(default = "default_stt_engine")]
     pub stt_engine: String,
-    
+
     /// Number of threads for STT processing
     #[serde(default = "default_stt_threads")]
     pub stt_threads: usize,
@@ -403,7 +402,7 @@ impl AudioConfig {
                 self.sample_rate
             ));
         }
-        
+
         // Channels validation
         if self.channels != 1 && self.channels != 2 {
             return Err(config_error!(
@@ -411,7 +410,7 @@ impl AudioConfig {
                 self.channels
             ));
         }
-        
+
         // Threshold validation
         if !(0.0..=1.0).contains(&self.silence_threshold) {
             return Err(config_error!(
@@ -419,7 +418,7 @@ impl AudioConfig {
                 self.silence_threshold
             ));
         }
-        
+
         // Timeout validation
         if self.recording_timeout_secs == 0 || self.recording_timeout_secs > 300 {
             return Err(config_error!(
@@ -427,7 +426,7 @@ impl AudioConfig {
                 self.recording_timeout_secs
             ));
         }
-        
+
         // Buffer size validation
         if self.buffer_size < 256 || self.buffer_size > 8192 {
             return Err(config_error!(
@@ -435,7 +434,7 @@ impl AudioConfig {
                 self.buffer_size
             ));
         }
-        
+
         Ok(())
     }
 }
@@ -458,7 +457,7 @@ impl BrainConfig {
     /// Validate brain configuration
     pub fn validate(&self) -> Result<()> {
         use tracing::warn;
-        
+
         // Model path check (warning if not found, not error)
         let model_path = Path::new(&self.whisper_model_path);
         if !model_path.exists() {
@@ -467,7 +466,7 @@ impl BrainConfig {
                 self.whisper_model_path
             );
         }
-        
+
         // Confidence threshold
         if !(0.0..=1.0).contains(&self.confidence_threshold) {
             return Err(config_error!(
@@ -475,7 +474,7 @@ impl BrainConfig {
                 self.confidence_threshold
             ));
         }
-        
+
         // Wake word sensitivity
         if !(0.0..=1.0).contains(&self.wake_word_sensitivity) {
             return Err(config_error!(
@@ -483,7 +482,7 @@ impl BrainConfig {
                 self.wake_word_sensitivity
             ));
         }
-        
+
         // Context window size
         if self.context_window_size == 0 || self.context_window_size > 100 {
             return Err(config_error!(
@@ -491,7 +490,7 @@ impl BrainConfig {
                 self.context_window_size
             ));
         }
-        
+
         Ok(())
     }
 }
@@ -515,19 +514,18 @@ impl SystemConfig {
         if !valid_log_levels.contains(&self.log_level.as_str()) {
             return Err(config_error!(
                 "Invalid log level '{}'. Must be one of: {:?}",
-                self.log_level, valid_log_levels
+                self.log_level,
+                valid_log_levels
             ));
         }
-        
+
         // Ensure data and cache directories exist or can be created
-        std::fs::create_dir_all(&self.data_dir).map_err(|e| {
-            config_error!("Cannot create data directory: {}", e)
-        })?;
-        
-        std::fs::create_dir_all(&self.cache_dir).map_err(|e| {
-            config_error!("Cannot create cache directory: {}", e)
-        })?;
-        
+        std::fs::create_dir_all(&self.data_dir)
+            .map_err(|e| config_error!("Cannot create data directory: {}", e))?;
+
+        std::fs::create_dir_all(&self.cache_dir)
+            .map_err(|e| config_error!("Cannot create cache directory: {}", e))?;
+
         Ok(())
     }
 }
@@ -546,14 +544,14 @@ impl PathsConfig {
     /// Validate paths configuration
     pub fn validate(&self) -> Result<()> {
         use tracing::warn;
-        
+
         // Warn about non-existent search paths but don't fail
         for path in &self.search_paths {
             if !Path::new(path).exists() {
                 warn!("Search path does not exist: {}", path);
             }
         }
-        
+
         Ok(())
     }
 }
@@ -578,7 +576,7 @@ impl PerformanceConfig {
                 self.max_threads
             ));
         }
-        
+
         // Cache size validation
         if self.cache_size_mb > 10240 {
             return Err(config_error!(
@@ -586,7 +584,7 @@ impl PerformanceConfig {
                 self.cache_size_mb
             ));
         }
-        
+
         // Index update interval validation
         if self.index_update_interval_secs < 60 {
             return Err(config_error!(
@@ -594,7 +592,7 @@ impl PerformanceConfig {
                 self.index_update_interval_secs
             ));
         }
-        
+
         Ok(())
     }
 }
@@ -611,13 +609,11 @@ impl LunaConfig {
 
         // If file exists, load it; otherwise use defaults
         if path.exists() {
-            let contents = std::fs::read_to_string(path).map_err(|e| {
-                LunaError::Config(format!("Failed to read config file: {}", e))
-            })?;
+            let contents = std::fs::read_to_string(path)
+                .map_err(|e| LunaError::Config(format!("Failed to read config file: {}", e)))?;
 
-            let config: LunaConfig = toml::from_str(&contents).map_err(|e| {
-                LunaError::Config(format!("Failed to parse config: {}", e))
-            })?;
+            let config: LunaConfig = toml::from_str(&contents)
+                .map_err(|e| LunaError::Config(format!("Failed to parse config: {}", e)))?;
 
             config.validate()?;
             Ok(config)
@@ -628,7 +624,7 @@ impl LunaConfig {
             Ok(config)
         }
     }
-    
+
     /// Load and validate configuration
     pub fn load_and_validate<P: AsRef<Path>>(path: P) -> Result<Self> {
         let config = Self::load_from_path(path)?;
@@ -647,13 +643,11 @@ impl LunaConfig {
             })?;
         }
 
-        let contents = toml::to_string_pretty(self).map_err(|e| {
-            LunaError::Config(format!("Failed to serialize config: {}", e))
-        })?;
+        let contents = toml::to_string_pretty(self)
+            .map_err(|e| LunaError::Config(format!("Failed to serialize config: {}", e)))?;
 
-        std::fs::write(path, contents).map_err(|e| {
-            LunaError::Config(format!("Failed to write config file: {}", e))
-        })?;
+        std::fs::write(path, contents)
+            .map_err(|e| LunaError::Config(format!("Failed to write config file: {}", e)))?;
 
         Ok(())
     }

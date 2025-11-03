@@ -3,11 +3,11 @@
 //! Converts audio to text. Stub implementation returns simulated transcriptions.
 //! Can be upgraded to use Whisper AI when models are available.
 
+use super::traits::SpeechToTextInterface;
 use crate::error::Result;
 use async_trait::async_trait;
-use tracing::{info, debug};
 use std::path::Path;
-use super::traits::SpeechToTextInterface;
+use tracing::{debug, info};
 
 /// Speech-to-text engine (stub implementation)
 ///
@@ -32,26 +32,28 @@ impl SpeechToText {
     /// this will load the actual model for transcription.
     pub fn new<P: AsRef<Path>>(model_path: P) -> Result<Self> {
         let model_path_str = model_path.as_ref().display().to_string();
-        
+
         // Check if model exists
         let simulated_mode = !model_path.as_ref().exists();
-        
+
         if simulated_mode {
             info!("⚠️  Whisper model not found at: {}", model_path_str);
             info!("✅ Speech-to-text initialized (simulated mode)");
             info!("   For production, download Whisper model:");
-            info!("   wget https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin");
+            info!(
+                "   wget https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin"
+            );
         } else {
             info!("✅ Speech-to-text initialized");
             info!("   Model: {}", model_path_str);
         }
-        
+
         Ok(Self {
             model_path: model_path_str,
             simulated_mode,
         })
     }
-    
+
     /// Transcribe audio to text
     ///
     /// # Arguments
@@ -67,10 +69,10 @@ impl SpeechToText {
         if audio.is_empty() {
             return Ok(String::new());
         }
-        
+
         debug!("Transcribing {} samples", audio.len());
         let start = std::time::Instant::now();
-        
+
         let text = if self.simulated_mode {
             // Simulated transcription based on audio characteristics
             self.simulate_transcription(audio)
@@ -78,19 +80,23 @@ impl SpeechToText {
             // TODO: Actual Whisper transcription when model is available
             self.simulate_transcription(audio)
         };
-        
+
         let duration = start.elapsed();
-        info!("💬 Transcribed in {:.2}s: \"{}\"", duration.as_secs_f32(), text);
-        
+        info!(
+            "💬 Transcribed in {:.2}s: \"{}\"",
+            duration.as_secs_f32(),
+            text
+        );
+
         Ok(text)
     }
-    
+
     /// Simulate transcription for testing
     fn simulate_transcription(&self, audio: &[f32]) -> String {
         // Analyze audio characteristics for simulation
         let duration_secs = audio.len() as f32 / 16000.0;
         let energy = self.calculate_energy(audio);
-        
+
         // Generate simulated transcription based on characteristics
         if duration_secs < 0.5 {
             "hey".to_string()
@@ -110,20 +116,21 @@ impl SpeechToText {
             }
         } else {
             // Longer audio
-            "hey luna can you please open chrome and search for rust programming tutorials".to_string()
+            "hey luna can you please open chrome and search for rust programming tutorials"
+                .to_string()
         }
     }
-    
+
     /// Calculate audio energy
     fn calculate_energy(&self, audio: &[f32]) -> f32 {
         if audio.is_empty() {
             return 0.0;
         }
-        
+
         let sum: f32 = audio.iter().map(|&s| s * s).sum();
         (sum / audio.len() as f32).sqrt()
     }
-    
+
     /// Check if running in simulated mode
     pub fn is_simulated(&self) -> bool {
         self.simulated_mode
@@ -137,11 +144,11 @@ impl SpeechToTextInterface for SpeechToText {
         // Call the existing transcribe method
         self.transcribe(audio).await
     }
-    
+
     fn is_simulated(&self) -> bool {
         self.simulated_mode
     }
-    
+
     fn sample_rate(&self) -> u32 {
         16000
     }
@@ -161,12 +168,12 @@ mod tests {
     #[tokio::test]
     async fn test_transcription() {
         let stt = SpeechToText::new(PathBuf::from("models/whisper-base.bin")).unwrap();
-        
+
         // Short audio
         let audio = vec![0.2; 8000]; // ~0.5 seconds at 16kHz
         let text = stt.transcribe(&audio).await.unwrap();
         assert!(!text.is_empty());
-        
+
         // Longer audio
         let audio = vec![0.3; 32000]; // ~2 seconds
         let text = stt.transcribe(&audio).await.unwrap();

@@ -43,7 +43,7 @@ impl PerformanceOptimizer {
 
     pub async fn apply_profile(&mut self, profile: OptimizationProfile) -> Result<()> {
         info!("Applying performance profile: {:?}", profile);
-        
+
         match profile {
             OptimizationProfile::Gaming => self.optimize_for_gaming().await?,
             OptimizationProfile::Work => self.optimize_for_work().await?,
@@ -86,13 +86,13 @@ impl PerformanceOptimizer {
 
     pub async fn clean_temp_files(&self) -> Result<u64> {
         info!("Cleaning temporary files");
-        
+
         #[cfg(target_os = "linux")]
         {
             let output = std::process::Command::new("du")
                 .args(["-sb", "/tmp"])
                 .output();
-            
+
             if let Ok(output) = output {
                 if output.status.success() {
                     // Parse size and clean
@@ -113,12 +113,10 @@ impl PerformanceOptimizer {
 
     pub async fn trim_ssd(&self) -> Result<()> {
         info!("Running SSD TRIM");
-        
+
         #[cfg(target_os = "linux")]
         {
-            let _ = std::process::Command::new("fstrim")
-                .arg("/")
-                .output();
+            let _ = std::process::Command::new("fstrim").arg("/").output();
         }
 
         Ok(())

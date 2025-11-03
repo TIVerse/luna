@@ -2,7 +2,7 @@
 
 use crate::error::Result;
 use serde::{Deserialize, Serialize};
-use tracing::{info, debug};
+use tracing::{debug, info};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PowerProfile {

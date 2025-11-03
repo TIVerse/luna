@@ -23,11 +23,23 @@ pub struct Macro {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AutomationStep {
     LaunchApp(String),
-    WaitForWindow { app: String, timeout_secs: u64 },
-    MoveWindow { app: String, x: i32, y: i32, width: u32, height: u32 },
+    WaitForWindow {
+        app: String,
+        timeout_secs: u64,
+    },
+    MoveWindow {
+        app: String,
+        x: i32,
+        y: i32,
+        width: u32,
+        height: u32,
+    },
     TypeText(String),
     PressKey(KeyCombo),
-    Click { x: i32, y: i32 },
+    Click {
+        x: i32,
+        y: i32,
+    },
     Wait(u64),
     ExecuteScript(PathBuf),
     CloseApp(String),
@@ -96,9 +108,9 @@ impl AutomationEngine {
     /// Stop recording and save macro
     pub async fn stop_recording(&self, name: String) -> Result<()> {
         let mut recording = self.recording.write().await;
-        let steps = recording.take().ok_or_else(|| {
-            LunaError::SystemOperation("No recording in progress".to_string())
-        })?;
+        let steps = recording
+            .take()
+            .ok_or_else(|| LunaError::SystemOperation("No recording in progress".to_string()))?;
 
         let macro_def = Macro {
             name: name.clone(),
@@ -118,16 +130,19 @@ impl AutomationEngine {
     /// Execute a macro
     pub async fn execute_macro(&self, name: &str) -> Result<()> {
         let macros = self.macros.read().await;
-        let macro_def = macros.get(name).ok_or_else(|| {
-            LunaError::SystemOperation(format!("Macro '{}' not found", name))
-        })?;
+        let macro_def = macros
+            .get(name)
+            .ok_or_else(|| LunaError::SystemOperation(format!("Macro '{}' not found", name)))?;
 
         info!("Executing macro: {}", name);
 
         // Check conditions
         for condition in &macro_def.conditions {
             if !self.check_condition(condition).await {
-                return Err(LunaError::SystemOperation(format!("Condition not met: {:?}", condition)));
+                return Err(LunaError::SystemOperation(format!(
+                    "Condition not met: {:?}",
+                    condition
+                )));
             }
         }
 
@@ -202,10 +217,10 @@ mod tests {
     async fn test_automation_engine() {
         let engine = AutomationEngine::new();
         engine.start_recording().await;
-        
+
         let result = engine.stop_recording("test_macro".to_string()).await;
         assert!(result.is_ok());
-        
+
         let macros = engine.list_macros().await;
         assert_eq!(macros.len(), 1);
     }

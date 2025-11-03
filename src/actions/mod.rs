@@ -17,7 +17,7 @@ pub mod window_control;
 pub use app_launcher::AppLauncher;
 pub use capabilities::{Capability, CapabilityDetector};
 pub use clipboard::Clipboard;
-pub use executor::{TaskExecutor, ExecutionPolicy, RetryPolicy};
+pub use executor::{ExecutionPolicy, RetryPolicy, TaskExecutor};
 pub use file_search::FileSearch;
 pub use media_control::MediaControl;
 pub use system_control::SystemControl;

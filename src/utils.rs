@@ -420,10 +420,7 @@ pub mod time_helpers {
 
         #[test]
         fn test_parse_duration() {
-            assert_eq!(
-                parse_duration("30 seconds"),
-                Some(Duration::seconds(30))
-            );
+            assert_eq!(parse_duration("30 seconds"), Some(Duration::seconds(30)));
             assert_eq!(parse_duration("5 minutes"), Some(Duration::minutes(5)));
             assert_eq!(parse_duration("2 hours"), Some(Duration::hours(2)));
             assert_eq!(parse_duration("30s"), Some(Duration::seconds(30)));

@@ -142,12 +142,13 @@ impl WindowPlacementEngine {
 
         let display = if let Some(rule) = rule {
             match &rule.preferred_display {
-                DisplayPreference::Primary => {
-                    displays.iter().find(|d| d.is_primary).or_else(|| displays.first())
-                }
-                DisplayPreference::Largest => {
-                    displays.iter().max_by_key(|d| d.resolution.0 * d.resolution.1)
-                }
+                DisplayPreference::Primary => displays
+                    .iter()
+                    .find(|d| d.is_primary)
+                    .or_else(|| displays.first()),
+                DisplayPreference::Largest => displays
+                    .iter()
+                    .max_by_key(|d| d.resolution.0 * d.resolution.1),
                 DisplayPreference::HighestRefreshRate => {
                     displays.iter().max_by_key(|d| d.refresh_rate)
                 }
@@ -155,7 +156,10 @@ impl WindowPlacementEngine {
                 _ => displays.first(),
             }
         } else {
-            displays.iter().find(|d| d.is_primary).or_else(|| displays.first())
+            displays
+                .iter()
+                .find(|d| d.is_primary)
+                .or_else(|| displays.first())
         };
 
         let display = display?;
@@ -226,7 +230,8 @@ impl MultiMonitorManager {
                         "resolution": display.resolution,
                         "is_primary": display.is_primary,
                     }),
-                }).await;
+                })
+                .await;
             }
         }
 
@@ -238,9 +243,7 @@ impl MultiMonitorManager {
         use std::process::Command;
 
         // Try xrandr first
-        let output = Command::new("xrandr")
-            .arg("--query")
-            .output();
+        let output = Command::new("xrandr").arg("--query").output();
 
         if let Ok(output) = output {
             if output.status.success() {
@@ -361,13 +364,18 @@ impl MultiMonitorManager {
 
     /// Apply a window layout
     pub async fn apply_layout(&self, name: &str) -> Result<()> {
-        let layout = self.load_layout(name).await
+        let layout = self
+            .load_layout(name)
+            .await
             .ok_or_else(|| LunaError::SystemOperation(format!("Layout '{}' not found", name)))?;
 
         info!("Applying window layout: {}", name);
 
         for placement in &layout.windows {
-            debug!("Placing window: {} on display {}", placement.app_name, placement.display_id);
+            debug!(
+                "Placing window: {} on display {}",
+                placement.app_name, placement.display_id
+            );
             // TODO: Implement actual window placement
         }
 
@@ -389,7 +397,10 @@ impl MultiMonitorManager {
     /// Get largest display
     pub async fn get_largest_display(&self) -> Option<DisplayInfo> {
         let displays = self.displays.read().await;
-        displays.iter().max_by_key(|d| d.resolution.0 * d.resolution.1).cloned()
+        displays
+            .iter()
+            .max_by_key(|d| d.resolution.0 * d.resolution.1)
+            .cloned()
     }
 }
 
@@ -415,7 +426,7 @@ mod tests {
         let manager = MultiMonitorManager::new();
         let result = manager.detect_displays().await;
         assert!(result.is_ok());
-        
+
         let displays = result.unwrap();
         assert!(!displays.is_empty());
     }
@@ -423,19 +434,17 @@ mod tests {
     #[tokio::test]
     async fn test_placement_engine() {
         let engine = WindowPlacementEngine::new();
-        let displays = vec![
-            DisplayInfo {
-                id: "display_0".to_string(),
-                name: "Primary".to_string(),
-                resolution: (1920, 1080),
-                position: (0, 0),
-                scale_factor: 1.0,
-                refresh_rate: 60,
-                is_primary: true,
-                rotation: DisplayRotation::Normal,
-                capabilities: DisplayCapabilities::default(),
-            },
-        ];
+        let displays = vec![DisplayInfo {
+            id: "display_0".to_string(),
+            name: "Primary".to_string(),
+            resolution: (1920, 1080),
+            position: (0, 0),
+            scale_factor: 1.0,
+            refresh_rate: 60,
+            is_primary: true,
+            rotation: DisplayRotation::Normal,
+            capabilities: DisplayCapabilities::default(),
+        }];
 
         let placement = engine.suggest_placement("vscode", &displays);
         assert!(placement.is_some());

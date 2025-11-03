@@ -19,7 +19,11 @@ pub struct VirtualDesktopManager {
 impl VirtualDesktopManager {
     pub fn new() -> Self {
         Self {
-            desktops: vec![VirtualDesktop { id: 0, name: "Desktop 1".to_string(), windows: Vec::new() }],
+            desktops: vec![VirtualDesktop {
+                id: 0,
+                name: "Desktop 1".to_string(),
+                windows: Vec::new(),
+            }],
             app_rules: HashMap::new(),
             current_desktop: 0,
         }
@@ -27,7 +31,11 @@ impl VirtualDesktopManager {
 
     pub async fn create_desktop(&mut self, name: String) -> Result<usize> {
         let id = self.desktops.len();
-        self.desktops.push(VirtualDesktop { id, name, windows: Vec::new() });
+        self.desktops.push(VirtualDesktop {
+            id,
+            name,
+            windows: Vec::new(),
+        });
         Ok(id)
     }
 
@@ -36,7 +44,9 @@ impl VirtualDesktopManager {
             self.current_desktop = desktop_id;
             Ok(())
         } else {
-            Err(crate::error::LunaError::SystemOperation("Invalid desktop ID".to_string()))
+            Err(crate::error::LunaError::SystemOperation(
+                "Invalid desktop ID".to_string(),
+            ))
         }
     }
 
@@ -45,7 +55,9 @@ impl VirtualDesktopManager {
             self.desktops[desktop_id].windows.push(window_id);
             Ok(())
         } else {
-            Err(crate::error::LunaError::SystemOperation("Invalid desktop ID".to_string()))
+            Err(crate::error::LunaError::SystemOperation(
+                "Invalid desktop ID".to_string(),
+            ))
         }
     }
 

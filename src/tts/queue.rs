@@ -3,11 +3,11 @@
 //! Manages queuing, prioritization, and cancellation of TTS utterances.
 
 use super::types::{MessageKind, Priority, TtsHandle};
-use std::collections::BinaryHeap;
 use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 use std::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
-use tokio::sync::{mpsc, RwLock};
 use std::sync::Arc;
+use tokio::sync::{mpsc, RwLock};
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
@@ -33,17 +33,17 @@ impl TtsMessage {
             coalesce_key: None,
         }
     }
-    
+
     pub fn with_ssml(mut self, is_ssml: bool) -> Self {
         self.is_ssml = is_ssml;
         self
     }
-    
+
     pub fn with_priority(mut self, priority: Priority) -> Self {
         self.priority = priority;
         self
     }
-    
+
     pub fn with_coalesce_key(mut self, key: String) -> Self {
         self.coalesce_key = Some(key);
         self
@@ -88,62 +88,61 @@ pub struct TtsQueue {
 impl TtsQueue {
     pub fn new() -> Self {
         let (cancel_tx, cancel_rx) = mpsc::unbounded_channel();
-        
+
         Self {
             queue: Arc::new(RwLock::new(BinaryHeap::new())),
             cancel_tx,
             cancel_rx: Arc::new(RwLock::new(cancel_rx)),
         }
     }
-    
+
     /// Enqueue a message and return a handle
     pub async fn enqueue(&self, message: TtsMessage) -> TtsHandle {
         let id = message.id;
-        
+
         // Check for coalescing
         if let Some(key) = &message.coalesce_key {
             let mut queue = self.queue.write().await;
             // Remove existing messages with same coalesce key
-            let filtered: Vec<_> = queue.drain()
-                .filter(|m| {
-                    m.0.coalesce_key.as_ref() != Some(key)
-                })
+            let filtered: Vec<_> = queue
+                .drain()
+                .filter(|m| m.0.coalesce_key.as_ref() != Some(key))
                 .collect();
-            
+
             *queue = filtered.into_iter().collect();
         }
-        
+
         self.queue.write().await.push(PriorityMessage(message));
         TtsHandle::new(id, self.cancel_tx.clone())
     }
-    
+
     /// Dequeue highest priority message
     pub async fn dequeue(&self) -> Option<TtsMessage> {
         self.queue.write().await.pop().map(|m| m.0)
     }
-    
+
     /// Check if a message should be cancelled
     pub async fn check_cancellations(&self) -> Vec<u64> {
         let mut cancelled = Vec::new();
         let mut rx = self.cancel_rx.write().await;
-        
+
         while let Ok(id) = rx.try_recv() {
             cancelled.push(id);
         }
-        
+
         cancelled
     }
-    
+
     /// Clear all messages
     pub async fn clear(&self) {
         self.queue.write().await.clear();
     }
-    
+
     /// Get queue size
     pub async fn len(&self) -> usize {
         self.queue.read().await.len()
     }
-    
+
     /// Check if queue is empty
     pub async fn is_empty(&self) -> bool {
         self.queue.read().await.is_empty()
@@ -159,56 +158,68 @@ impl Default for TtsQueue {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     async fn test_queue_priority() {
         let queue = TtsQueue::new();
-        
+
         // Enqueue in random order
-        queue.enqueue(TtsMessage::new("info".to_string(), MessageKind::Info)).await;
-        queue.enqueue(TtsMessage::new("critical".to_string(), MessageKind::Critical)).await;
-        queue.enqueue(TtsMessage::new("background".to_string(), MessageKind::Background)).await;
-        
+        queue
+            .enqueue(TtsMessage::new("info".to_string(), MessageKind::Info))
+            .await;
+        queue
+            .enqueue(TtsMessage::new(
+                "critical".to_string(),
+                MessageKind::Critical,
+            ))
+            .await;
+        queue
+            .enqueue(TtsMessage::new(
+                "background".to_string(),
+                MessageKind::Background,
+            ))
+            .await;
+
         // Should dequeue by priority
         let msg1 = queue.dequeue().await.unwrap();
         assert_eq!(msg1.kind, MessageKind::Critical);
-        
+
         let msg2 = queue.dequeue().await.unwrap();
         assert_eq!(msg2.kind, MessageKind::Info);
-        
+
         let msg3 = queue.dequeue().await.unwrap();
         assert_eq!(msg3.kind, MessageKind::Background);
     }
-    
+
     #[tokio::test]
     async fn test_coalescing() {
         let queue = TtsQueue::new();
-        
+
         let msg1 = TtsMessage::new("working 1".to_string(), MessageKind::Info)
             .with_coalesce_key("status".to_string());
         let msg2 = TtsMessage::new("working 2".to_string(), MessageKind::Info)
             .with_coalesce_key("status".to_string());
-        
+
         queue.enqueue(msg1).await;
         queue.enqueue(msg2).await;
-        
+
         // Should only have one message
         assert_eq!(queue.len().await, 1);
-        
+
         let msg = queue.dequeue().await.unwrap();
         assert_eq!(msg.text, "working 2");
     }
-    
+
     #[tokio::test]
     async fn test_cancellation() {
         let queue = TtsQueue::new();
-        
-        let handle = queue.enqueue(
-            TtsMessage::new("test".to_string(), MessageKind::Info)
-        ).await;
-        
+
+        let handle = queue
+            .enqueue(TtsMessage::new("test".to_string(), MessageKind::Info))
+            .await;
+
         handle.cancel();
-        
+
         let cancelled = queue.check_cancellations().await;
         assert!(cancelled.contains(&handle.id()));
     }

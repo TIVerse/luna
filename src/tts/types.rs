@@ -46,7 +46,7 @@ impl MessageKind {
             Self::Background => Priority::Background,
         }
     }
-    
+
     /// Can this message be interrupted?
     pub fn is_interruptible(&self) -> bool {
         match self {
@@ -168,12 +168,12 @@ impl TtsHandle {
     pub fn new(id: u64, cancel_tx: tokio::sync::mpsc::UnboundedSender<u64>) -> Self {
         Self { id, cancel_tx }
     }
-    
+
     /// Cancel this utterance
     pub fn cancel(&self) {
         let _ = self.cancel_tx.send(self.id);
     }
-    
+
     /// Get utterance ID
     pub fn id(&self) -> u64 {
         self.id

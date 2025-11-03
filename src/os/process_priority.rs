@@ -1,6 +1,6 @@
 //! Process Priority & Affinity Management (GOD-LEVEL)
 
-use crate::error::{Result, LunaError};
+use crate::error::{LunaError, Result};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy)]
@@ -67,7 +67,9 @@ impl ProcessOptimizer {
 
         #[cfg(target_os = "linux")]
         {
-            let cpu_list = cpuset.cores.iter()
+            let cpu_list = cpuset
+                .cores
+                .iter()
                 .map(|c| c.to_string())
                 .collect::<Vec<_>>()
                 .join(",");

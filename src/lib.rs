@@ -54,18 +54,27 @@ pub mod utils;
 pub use config::LunaConfig;
 pub use config_manager::ConfigManager;
 pub use error::{ErrorCode, LunaError, Result};
-pub use events::{EventBus, EventEnvelope, LunaEvent, BackpressureStrategy};
-pub use metrics::{Metrics, MetricPhase, MetricTimer};
+pub use events::{BackpressureStrategy, EventBus, EventEnvelope, LunaEvent};
+pub use metrics::{MetricPhase, MetricTimer, Metrics};
 pub use runtime::{Lifecycle, LunaRuntime, RuntimeState};
 
 // Re-export brain enhancements
 pub use brain::{
-    Brain, IntentType, ActionType,
-    // God-level enhancements
-    Entity, Entities, Confidence, ConfidenceFactor,
-    KnownAppProvider, FileSystemProvider, CompositeProvider,
-    BrainCache, GrammarConfig, CompiledGrammar,
+    ActionType,
+    Brain,
+    BrainCache,
+    CompiledGrammar,
+    CompositeProvider,
+    Confidence,
+    ConfidenceFactor,
     ConversationContext,
+    Entities,
+    // God-level enhancements
+    Entity,
+    FileSystemProvider,
+    GrammarConfig,
+    IntentType,
+    KnownAppProvider,
 };
 
 /// Library version

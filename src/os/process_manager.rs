@@ -15,7 +15,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use sysinfo::{Pid as SysPid, System};
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn, error};
+use tracing::{debug, error, info, warn};
 
 /// Process ID type
 pub type Pid = u32;
@@ -90,7 +90,7 @@ pub enum HealthCheckType {
     ProcessAlive,
     CpuUsageBelow(f64),
     MemoryUsageBelow(u64),
-    Responsive(PathBuf),  // Check if process responds to signals
+    Responsive(PathBuf), // Check if process responds to signals
 }
 
 /// Resource quota per process
@@ -163,10 +163,10 @@ impl ProcessManager {
 
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(Duration::from_secs(5));
-            
+
             loop {
                 interval.tick().await;
-                
+
                 let active = *active_flag.read().await;
                 if !active {
                     break;
@@ -187,7 +187,7 @@ impl ProcessManager {
                         info.status = ProcessStatus::Running;
                     } else {
                         info.status = ProcessStatus::Dead;
-                        
+
                         // Publish process death event
                         if let Some(ref bus) = event_bus {
                             bus.publish(LunaEvent::Custom {
@@ -196,7 +196,8 @@ impl ProcessManager {
                                     "pid": pid,
                                     "command": &info.command,
                                 }),
-                            }).await;
+                            })
+                            .await;
                         }
                     }
                 }
@@ -222,7 +223,8 @@ impl ProcessManager {
         let mut cmd = Command::new(command);
         cmd.args(args);
 
-        let child = cmd.spawn()
+        let child = cmd
+            .spawn()
             .map_err(|e| LunaError::SystemOperation(format!("Failed to spawn process: {}", e)))?;
 
         let pid = child.id();
@@ -255,7 +257,8 @@ impl ProcessManager {
                     "pid": pid,
                     "command": command,
                 }),
-            }).await;
+            })
+            .await;
         }
 
         info!("Spawned process {} (PID: {})", command, pid);
@@ -270,9 +273,10 @@ impl ProcessManager {
         {
             use nix::sys::signal::{kill as nix_kill, Signal};
             use nix::unistd::Pid as NixPid;
-            
-            nix_kill(NixPid::from_raw(pid as i32), Signal::SIGTERM)
-                .map_err(|e| LunaError::SystemOperation(format!("Failed to kill process: {}", e)))?;
+
+            nix_kill(NixPid::from_raw(pid as i32), Signal::SIGTERM).map_err(|e| {
+                LunaError::SystemOperation(format!("Failed to kill process: {}", e))
+            })?;
         }
 
         #[cfg(target_os = "windows")]
@@ -281,7 +285,9 @@ impl ProcessManager {
             Command::new("taskkill")
                 .args(["/PID", &pid.to_string(), "/F"])
                 .output()
-                .map_err(|e| LunaError::SystemOperation(format!("Failed to kill process: {}", e)))?;
+                .map_err(|e| {
+                    LunaError::SystemOperation(format!("Failed to kill process: {}", e))
+                })?;
         }
 
         #[cfg(target_os = "macos")]
@@ -290,7 +296,9 @@ impl ProcessManager {
             Command::new("kill")
                 .args(["-9", &pid.to_string()])
                 .output()
-                .map_err(|e| LunaError::SystemOperation(format!("Failed to kill process: {}", e)))?;
+                .map_err(|e| {
+                    LunaError::SystemOperation(format!("Failed to kill process: {}", e))
+                })?;
         }
 
         // Remove from tracking
@@ -345,7 +353,10 @@ impl ProcessManager {
 
                     if let Some(max_mem) = quota.max_memory_mb {
                         if mem_mb > max_mem {
-                            warn!("Process {} exceeds memory quota: {}MB > {}MB", pid, mem_mb, max_mem);
+                            warn!(
+                                "Process {} exceeds memory quota: {}MB > {}MB",
+                                pid, mem_mb, max_mem
+                            );
                             violated = true;
                         }
                     }
@@ -395,11 +406,11 @@ mod tests {
     #[tokio::test]
     async fn test_spawn_and_track() {
         let manager = ProcessManager::new();
-        
+
         // Spawn echo command
         #[cfg(not(target_os = "windows"))]
         let result = manager.spawn("echo", &["hello"]).await;
-        
+
         #[cfg(target_os = "windows")]
         let result = manager.spawn("cmd", &["/c", "echo", "hello"]).await;
 
@@ -411,7 +422,7 @@ mod tests {
         let manager = ProcessManager::new();
         let result = manager.start_monitoring().await;
         assert!(result.is_ok());
-        
+
         manager.stop_monitoring().await;
     }
 }

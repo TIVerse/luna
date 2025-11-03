@@ -108,18 +108,22 @@ impl TaskPlanner {
     pub fn new() -> Self {
         Self
     }
-    
+
     /// Plan tasks from a classification result
     pub fn plan(&self, classification: ClassificationResult) -> TaskPlan {
         info!("Planning tasks for intent: {:?}", classification.intent);
-        
+
         let steps = self.create_steps(&classification);
         let dependencies = self.compute_dependencies(&steps);
         let parallel_groups = self.compute_parallel_groups(&steps);
-        
-        debug!("Created {} steps with {} dependencies and {} parallel groups", 
-               steps.len(), dependencies.len(), parallel_groups.len());
-        
+
+        debug!(
+            "Created {} steps with {} dependencies and {} parallel groups",
+            steps.len(),
+            dependencies.len(),
+            parallel_groups.len()
+        );
+
         let mut plan = TaskPlan {
             steps,
             dependencies,
@@ -128,17 +132,17 @@ impl TaskPlanner {
             is_valid: true,
             validation_errors: Vec::new(),
         };
-        
+
         // Validate the plan
         self.validate_plan(&mut plan);
-        
+
         plan
     }
-    
+
     /// Create action steps from classification
     fn create_steps(&self, classification: &ClassificationResult) -> Vec<ActionStep> {
         let mut steps = Vec::new();
-        
+
         match &classification.intent {
             IntentType::LaunchApp => {
                 // Simple single-step task
@@ -146,9 +150,7 @@ impl TaskPlanner {
                     action: ActionType::LaunchApp,
                     params: classification.entities.clone(),
                     step_number: 0,
-                    preconditions: vec![
-                        Precondition::ConfidenceThreshold(0.7),
-                    ],
+                    preconditions: vec![Precondition::ConfidenceThreshold(0.7)],
                     postconditions: vec![
                         Postcondition::Success,
                         Postcondition::StateChanged("app_running".to_string(), "true".to_string()),
@@ -156,7 +158,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::CloseApp => {
                 steps.push(ActionStep {
                     action: ActionType::CloseApp,
@@ -167,7 +169,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::FindFile => {
                 // Multi-step: find file, then potentially open it
                 steps.push(ActionStep {
@@ -179,7 +181,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::OpenFolder => {
                 steps.push(ActionStep {
                     action: ActionType::OpenFolder,
@@ -190,7 +192,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::SystemControl => {
                 steps.push(ActionStep {
                     action: ActionType::SystemControl,
@@ -201,7 +203,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::VolumeControl => {
                 steps.push(ActionStep {
                     action: ActionType::VolumeControl,
@@ -212,7 +214,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::MediaControl => {
                 steps.push(ActionStep {
                     action: ActionType::MediaControl,
@@ -223,7 +225,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::SearchWeb => {
                 steps.push(ActionStep {
                     action: ActionType::SearchWeb,
@@ -234,7 +236,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::Reminder => {
                 steps.push(ActionStep {
                     action: ActionType::CreateReminder,
@@ -245,7 +247,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::Note => {
                 steps.push(ActionStep {
                     action: ActionType::TakeNote,
@@ -256,7 +258,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::Question => {
                 steps.push(ActionStep {
                     action: ActionType::AnswerQuestion,
@@ -267,7 +269,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::GetTime => {
                 steps.push(ActionStep {
                     action: ActionType::GetTime,
@@ -278,7 +280,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::GetDate => {
                 steps.push(ActionStep {
                     action: ActionType::GetDate,
@@ -289,7 +291,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::WindowManagement => {
                 steps.push(ActionStep {
                     action: ActionType::WindowManagement,
@@ -300,7 +302,7 @@ impl TaskPlanner {
                     parallel_group: None,
                 });
             }
-            
+
             IntentType::Unknown => {
                 // Create a generic answer question step
                 steps.push(ActionStep {
@@ -313,56 +315,57 @@ impl TaskPlanner {
                 });
             }
         }
-        
+
         steps
     }
-    
+
     /// Compute dependencies between steps
     fn compute_dependencies(&self, steps: &[ActionStep]) -> Vec<(usize, usize)> {
         let mut dependencies = Vec::new();
-        
+
         // For multi-step tasks, add sequential dependencies
         for i in 1..steps.len() {
             dependencies.push((i - 1, i));
         }
-        
+
         dependencies
     }
-    
+
     /// Check if plan is executable
     pub fn is_executable(&self, plan: &TaskPlan) -> bool {
         // Plan is executable if it has at least one step
         !plan.steps.is_empty()
     }
-    
+
     /// Get execution order considering dependencies
     pub fn get_execution_order(&self, plan: &TaskPlan) -> Vec<usize> {
         // Simple topological sort for now
         // Since we mostly have sequential dependencies, this is straightforward
         (0..plan.steps.len()).collect()
     }
-    
+
     /// Compute parallel execution groups
     fn compute_parallel_groups(&self, steps: &[ActionStep]) -> Vec<Vec<usize>> {
         let mut groups: HashMap<usize, Vec<usize>> = HashMap::new();
-        
+
         for (idx, step) in steps.iter().enumerate() {
             if let Some(group_id) = step.parallel_group {
                 groups.entry(group_id).or_insert_with(Vec::new).push(idx);
             }
         }
-        
+
         groups.into_values().collect()
     }
-    
+
     /// Validate a task plan
     fn validate_plan(&self, plan: &mut TaskPlan) {
         // Check for circular dependencies
         if self.has_circular_dependencies(plan) {
             plan.is_valid = false;
-            plan.validation_errors.push("Circular dependencies detected".to_string());
+            plan.validation_errors
+                .push("Circular dependencies detected".to_string());
         }
-        
+
         // Check preconditions are satisfiable
         for (idx, step) in plan.steps.iter().enumerate() {
             for precond in &step.preconditions {
@@ -370,54 +373,57 @@ impl TaskPlanner {
                     Precondition::StepCompleted(dep_idx) => {
                         if *dep_idx >= plan.steps.len() {
                             plan.is_valid = false;
-                            plan.validation_errors.push(
-                                format!("Step {} depends on non-existent step {}", idx, dep_idx)
-                            );
+                            plan.validation_errors.push(format!(
+                                "Step {} depends on non-existent step {}",
+                                idx, dep_idx
+                            ));
                         }
                     }
                     Precondition::ConfidenceThreshold(threshold) => {
                         if plan.classification.confidence < *threshold {
-                            plan.validation_errors.push(
-                                format!("Step {} requires confidence >= {:.2}, but current is {:.2}",
-                                        idx, threshold, plan.classification.confidence)
-                            );
+                            plan.validation_errors.push(format!(
+                                "Step {} requires confidence >= {:.2}, but current is {:.2}",
+                                idx, threshold, plan.classification.confidence
+                            ));
                         }
                     }
                     _ => {}
                 }
             }
         }
-        
+
         // Check parallel groups don't have dependencies on each other
         for group in &plan.parallel_groups {
             for &step_a in group {
                 for &step_b in group {
                     if step_a != step_b {
-                        if plan.dependencies.contains(&(step_a, step_b)) || 
-                           plan.dependencies.contains(&(step_b, step_a)) {
+                        if plan.dependencies.contains(&(step_a, step_b))
+                            || plan.dependencies.contains(&(step_b, step_a))
+                        {
                             plan.is_valid = false;
-                            plan.validation_errors.push(
-                                format!("Parallel group contains dependent steps {} and {}", step_a, step_b)
-                            );
+                            plan.validation_errors.push(format!(
+                                "Parallel group contains dependent steps {} and {}",
+                                step_a, step_b
+                            ));
                         }
                     }
                 }
             }
         }
     }
-    
+
     /// Check for circular dependencies using DFS
     fn has_circular_dependencies(&self, plan: &TaskPlan) -> bool {
         let n = plan.steps.len();
         let mut visited = vec![false; n];
         let mut rec_stack = vec![false; n];
-        
+
         // Build adjacency list
         let mut graph: HashMap<usize, Vec<usize>> = HashMap::new();
         for &(from, to) in &plan.dependencies {
             graph.entry(from).or_insert_with(Vec::new).push(to);
         }
-        
+
         fn dfs(
             node: usize,
             graph: &HashMap<usize, Vec<usize>>,
@@ -426,7 +432,7 @@ impl TaskPlanner {
         ) -> bool {
             visited[node] = true;
             rec_stack[node] = true;
-            
+
             if let Some(neighbors) = graph.get(&node) {
                 for &neighbor in neighbors {
                     if !visited[neighbor] {
@@ -438,17 +444,17 @@ impl TaskPlanner {
                     }
                 }
             }
-            
+
             rec_stack[node] = false;
             false
         }
-        
+
         for i in 0..n {
             if !visited[i] && dfs(i, &graph, &mut visited, &mut rec_stack) {
                 return true;
             }
         }
-        
+
         false
     }
 }
@@ -467,7 +473,7 @@ mod tests {
     fn create_test_classification(intent: IntentType) -> ClassificationResult {
         let mut entities = HashMap::new();
         entities.insert("test".to_string(), "value".to_string());
-        
+
         ClassificationResult {
             intent,
             confidence: 0.9,
@@ -480,9 +486,9 @@ mod tests {
     fn test_plan_launch_app() {
         let planner = TaskPlanner::new();
         let classification = create_test_classification(IntentType::LaunchApp);
-        
+
         let plan = planner.plan(classification);
-        
+
         assert_eq!(plan.steps.len(), 1);
         assert_eq!(plan.steps[0].action, ActionType::LaunchApp);
     }
@@ -491,9 +497,9 @@ mod tests {
     fn test_plan_find_file() {
         let planner = TaskPlanner::new();
         let classification = create_test_classification(IntentType::FindFile);
-        
+
         let plan = planner.plan(classification);
-        
+
         assert_eq!(plan.steps.len(), 1);
         assert_eq!(plan.steps[0].action, ActionType::FindFile);
     }
@@ -503,7 +509,7 @@ mod tests {
         let planner = TaskPlanner::new();
         let classification = create_test_classification(IntentType::LaunchApp);
         let plan = planner.plan(classification);
-        
+
         assert!(planner.is_executable(&plan));
     }
 
@@ -512,7 +518,7 @@ mod tests {
         let planner = TaskPlanner::new();
         let classification = create_test_classification(IntentType::LaunchApp);
         let plan = planner.plan(classification);
-        
+
         let order = planner.get_execution_order(&plan);
         assert_eq!(order, vec![0]);
     }
@@ -521,9 +527,9 @@ mod tests {
     fn test_plan_unknown_intent() {
         let planner = TaskPlanner::new();
         let classification = create_test_classification(IntentType::Unknown);
-        
+
         let plan = planner.plan(classification);
-        
+
         // Should still create a plan (with answer question fallback)
         assert!(!plan.steps.is_empty());
     }

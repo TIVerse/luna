@@ -3,8 +3,8 @@
 //! Stores and retrieves conversation history for contextual understanding.
 
 use crate::brain::IntentType;
-use std::collections::VecDeque;
 use chrono::Utc;
+use std::collections::VecDeque;
 
 /// Entry in the conversation history
 #[derive(Debug, Clone)]
@@ -52,7 +52,7 @@ impl ConversationMemory {
     pub fn new() -> Self {
         Self::with_capacity(100)
     }
-    
+
     /// Create a new conversation memory with specified capacity
     pub fn with_capacity(max_size: usize) -> Self {
         Self {
@@ -60,37 +60,37 @@ impl ConversationMemory {
             max_size,
         }
     }
-    
+
     /// Add an entry to the conversation history
     pub fn add_entry(&mut self, entry: ConversationEntry) {
         // If at capacity, remove oldest entry
         if self.history.len() >= self.max_size {
             self.history.pop_front();
         }
-        
+
         self.history.push_back(entry);
     }
-    
+
     /// Get the full conversation context (all entries)
     pub fn get_context(&self) -> Vec<&ConversationEntry> {
         self.history.iter().collect()
     }
-    
+
     /// Get the last N entries
     pub fn get_recent(&self, n: usize) -> Vec<&ConversationEntry> {
         self.history.iter().rev().take(n).collect()
     }
-    
+
     /// Get the last action performed
     pub fn get_last_action(&self) -> Option<&ConversationEntry> {
         self.history.back()
     }
-    
+
     /// Get the last successful action
     pub fn get_last_successful_action(&self) -> Option<&ConversationEntry> {
         self.history.iter().rev().find(|e| e.success)
     }
-    
+
     /// Get all entries matching a specific intent
     pub fn get_by_intent(&self, intent: &IntentType) -> Vec<&ConversationEntry> {
         self.history
@@ -98,33 +98,33 @@ impl ConversationMemory {
             .filter(|e| &e.parsed_intent == intent)
             .collect()
     }
-    
+
     /// Get success rate for a specific intent
     pub fn success_rate_for_intent(&self, intent: &IntentType) -> f32 {
         let matching: Vec<_> = self.get_by_intent(intent);
         if matching.is_empty() {
             return 0.0;
         }
-        
+
         let successful = matching.iter().filter(|e| e.success).count();
         successful as f32 / matching.len() as f32
     }
-    
+
     /// Clear all conversation history
     pub fn clear(&mut self) {
         self.history.clear();
     }
-    
+
     /// Get the number of entries in history
     pub fn len(&self) -> usize {
         self.history.len()
     }
-    
+
     /// Check if history is empty
     pub fn is_empty(&self) -> bool {
         self.history.is_empty()
     }
-    
+
     /// Find entries related to a specific keyword (in user input or action)
     pub fn search(&self, keyword: &str) -> Vec<&ConversationEntry> {
         let keyword_lower = keyword.to_lowercase();
@@ -147,7 +147,7 @@ impl Default for ConversationMemory {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_add_entry() {
         let mut memory = ConversationMemory::new();
@@ -157,37 +157,37 @@ mod tests {
             "Launched Chrome".to_string(),
             true,
         );
-        
+
         memory.add_entry(entry);
         assert_eq!(memory.len(), 1);
     }
-    
+
     #[test]
     fn test_get_last_action() {
         let mut memory = ConversationMemory::new();
-        
+
         memory.add_entry(ConversationEntry::new(
             "open chrome".to_string(),
             IntentType::LaunchApp,
             "Launched Chrome".to_string(),
             true,
         ));
-        
+
         memory.add_entry(ConversationEntry::new(
             "close chrome".to_string(),
             IntentType::CloseApp,
             "Closed Chrome".to_string(),
             true,
         ));
-        
+
         let last = memory.get_last_action().unwrap();
         assert_eq!(last.user_input, "close chrome");
     }
-    
+
     #[test]
     fn test_max_size() {
         let mut memory = ConversationMemory::with_capacity(2);
-        
+
         for i in 0..3 {
             memory.add_entry(ConversationEntry::new(
                 format!("command {}", i),
@@ -196,30 +196,30 @@ mod tests {
                 true,
             ));
         }
-        
+
         assert_eq!(memory.len(), 2);
         // First entry should be removed
         assert!(memory.get_context()[0].user_input == "command 1");
     }
-    
+
     #[test]
     fn test_search() {
         let mut memory = ConversationMemory::new();
-        
+
         memory.add_entry(ConversationEntry::new(
             "open chrome".to_string(),
             IntentType::LaunchApp,
             "Launched Chrome".to_string(),
             true,
         ));
-        
+
         memory.add_entry(ConversationEntry::new(
             "open firefox".to_string(),
             IntentType::LaunchApp,
             "Launched Firefox".to_string(),
             true,
         ));
-        
+
         let results = memory.search("chrome");
         assert_eq!(results.len(), 1);
         assert!(results[0].user_input.contains("chrome"));

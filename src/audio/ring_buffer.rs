@@ -25,13 +25,13 @@ impl LockFreeRingBuffer {
     /// * `capacity` - Buffer capacity in samples (e.g., 48000 for 1 second at 48kHz)
     pub fn new(capacity: usize) -> Self {
         let rb = VecDeque::with_capacity(capacity);
-        
+
         Self {
             rb: Arc::new(Mutex::new(rb)),
             capacity,
         }
     }
-    
+
     /// Push samples into the ring buffer (producer side)
     ///
     /// This is called from the audio callback.
@@ -41,16 +41,16 @@ impl LockFreeRingBuffer {
     /// * `samples` - Audio samples to push
     pub fn push_samples(&self, samples: &[f32]) {
         let mut rb = self.rb.lock();
-        
+
         // Remove old samples if needed
         while rb.len() + samples.len() > self.capacity {
             rb.pop_front();
         }
-        
+
         // Push new samples
         rb.extend(samples);
     }
-    
+
     /// Get the last N samples (consumer side)
     ///
     /// # Arguments
@@ -62,15 +62,15 @@ impl LockFreeRingBuffer {
     pub fn get_last_n_samples(&self, duration_ms: u64, sample_rate: u32) -> Vec<f32> {
         let n = ((duration_ms * sample_rate as u64) / 1000) as usize;
         let n = n.min(self.capacity);
-        
+
         let rb = self.rb.lock();
         let available = rb.len();
         let to_read = n.min(available);
-        
+
         if to_read == 0 {
             return Vec::new();
         }
-        
+
         // Read from the end of the buffer
         if available >= to_read {
             rb.iter().skip(available - to_read).copied().collect()
@@ -78,7 +78,7 @@ impl LockFreeRingBuffer {
             rb.iter().copied().collect()
         }
     }
-    
+
     /// Get all available samples and clear the buffer
     ///
     /// # Returns
@@ -87,30 +87,30 @@ impl LockFreeRingBuffer {
         let mut rb = self.rb.lock();
         rb.drain(..).collect()
     }
-    
+
     /// Get current fill level (0.0 - 1.0)
     pub fn fill_ratio(&self) -> f32 {
         let rb = self.rb.lock();
         rb.len() as f32 / self.capacity as f32
     }
-    
+
     /// Get number of samples currently in buffer
     pub fn len(&self) -> usize {
         let rb = self.rb.lock();
         rb.len()
     }
-    
+
     /// Check if buffer is empty
     pub fn is_empty(&self) -> bool {
         let rb = self.rb.lock();
         rb.is_empty()
     }
-    
+
     /// Get buffer capacity
     pub fn capacity(&self) -> usize {
         self.capacity
     }
-    
+
     /// Clear the buffer
     pub fn clear(&self) {
         let mut rb = self.rb.lock();
@@ -141,10 +141,10 @@ mod tests {
     #[test]
     fn test_push_and_get() {
         let rb = LockFreeRingBuffer::new(1000);
-        
+
         // Push some samples
         rb.push_samples(&[1.0, 2.0, 3.0, 4.0, 5.0]);
-        
+
         // Get last 100ms at 16kHz (1600 samples, but we only have 5)
         let samples = rb.get_last_n_samples(100, 16000);
         assert_eq!(samples.len(), 5);
@@ -154,10 +154,12 @@ mod tests {
     #[test]
     fn test_overflow() {
         let rb = LockFreeRingBuffer::new(10);
-        
+
         // Push more than capacity
-        rb.push_samples(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0]);
-        
+        rb.push_samples(&[
+            1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+        ]);
+
         // Should have kept the last 10
         let samples = rb.get_last_n_samples(1000, 10);
         assert!(samples.len() <= 10);
@@ -166,10 +168,10 @@ mod tests {
     #[test]
     fn test_drain() {
         let rb = LockFreeRingBuffer::new(1000);
-        
+
         rb.push_samples(&[1.0, 2.0, 3.0, 4.0, 5.0]);
         let samples = rb.drain();
-        
+
         assert_eq!(samples.len(), 5);
         assert!(rb.is_empty());
     }
@@ -177,12 +179,12 @@ mod tests {
     #[test]
     fn test_fill_ratio() {
         let rb = LockFreeRingBuffer::new(100);
-        
+
         assert_eq!(rb.fill_ratio(), 0.0);
-        
+
         rb.push_samples(&[1.0; 50]);
         assert!((rb.fill_ratio() - 0.5).abs() < 0.01);
-        
+
         rb.push_samples(&[1.0; 50]);
         assert!((rb.fill_ratio() - 1.0).abs() < 0.01);
     }
@@ -190,10 +192,10 @@ mod tests {
     #[test]
     fn test_clear() {
         let rb = LockFreeRingBuffer::new(1000);
-        
+
         rb.push_samples(&[1.0, 2.0, 3.0]);
         assert!(!rb.is_empty());
-        
+
         rb.clear();
         assert!(rb.is_empty());
     }

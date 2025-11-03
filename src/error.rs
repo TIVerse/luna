@@ -3,8 +3,8 @@
 //! This module provides comprehensive error types using thiserror,
 //! with context-rich messages for debugging and user-friendly display.
 
-use thiserror::Error;
 use std::collections::HashMap;
+use thiserror::Error;
 
 /// Stable error codes for telemetry and error policies
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -13,45 +13,45 @@ pub enum ErrorCode {
     AudioCaptureFailure = 1000,
     AudioDeviceNotFound = 1001,
     AudioFormatUnsupported = 1002,
-    
+
     // Wake word errors (1100-1199)
     WakeWordModelNotFound = 1100,
     WakeWordDetectionFailed = 1101,
-    
+
     // Speech recognition errors (1200-1299)
     SttModelNotFound = 1200,
     SttTranscriptionFailed = 1201,
     SttAudioTooShort = 1202,
-    
+
     // Command parsing errors (1300-1399)
     CommandParseFailure = 1300,
     CommandNotUnderstood = 1301,
     CommandAmbiguous = 1302,
-    
+
     // Application errors (1400-1499)
     AppNotFound = 1400,
     AppLaunchFailed = 1401,
     AppCloseFailed = 1402,
-    
+
     // File errors (1500-1599)
     FileNotFound = 1500,
     FileAccessDenied = 1501,
     FileOperationFailed = 1502,
-    
+
     // System operation errors (1600-1699)
     SystemOperationFailed = 1600,
     SystemPermissionDenied = 1601,
-    
+
     // Configuration errors (1700-1799)
     ConfigLoadFailed = 1700,
     ConfigInvalid = 1701,
     ConfigSaveFailed = 1702,
-    
+
     // Database errors (1800-1899)
     DatabaseLoadFailed = 1800,
     DatabaseSaveFailed = 1801,
     DatabaseCorrupted = 1802,
-    
+
     // Unknown/generic errors (9000+)
     Unknown = 9000,
 }
@@ -61,7 +61,7 @@ impl ErrorCode {
     pub fn as_u32(self) -> u32 {
         self as u32
     }
-    
+
     /// Get error category
     pub fn category(&self) -> &'static str {
         match *self as u32 {
@@ -105,7 +105,7 @@ pub enum LunaError {
     /// File or directory not found
     #[error("File not found: {0}")]
     FileNotFound(String),
-    
+
     /// Invalid or missing parameter
     #[error("Invalid parameter: {0}")]
     InvalidParameter(String),
@@ -229,7 +229,7 @@ impl LunaError {
     pub fn tts_error(msg: impl Into<String>) -> Self {
         LunaError::Tts(msg.into())
     }
-    
+
     /// Get the stable error code for this error
     pub fn error_code(&self) -> ErrorCode {
         match self {
@@ -252,12 +252,12 @@ impl LunaError {
             LunaError::Unknown(_) => ErrorCode::Unknown,
         }
     }
-    
+
     /// Get error category
     pub fn category(&self) -> &'static str {
         self.error_code().category()
     }
-    
+
     /// Check if error is recoverable (can retry)
     pub fn is_recoverable(&self) -> bool {
         matches!(
@@ -301,11 +301,14 @@ impl LunaError {
             _ => "An error occurred. Please try again.".to_string(),
         }
     }
-    
+
     /// Get debug context (detailed technical info)
     pub fn debug_context(&self) -> HashMap<String, String> {
         let mut context = HashMap::new();
-        context.insert("error_code".to_string(), self.error_code().as_u32().to_string());
+        context.insert(
+            "error_code".to_string(),
+            self.error_code().as_u32().to_string(),
+        );
         context.insert("category".to_string(), self.category().to_string());
         context.insert("recoverable".to_string(), self.is_recoverable().to_string());
         context.insert("error_message".to_string(), self.to_string());

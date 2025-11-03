@@ -1,7 +1,7 @@
 //! Real-Time Application Change Detection (GOD-LEVEL)
 
 use crate::error::Result;
-use notify::{Watcher, RecursiveMode, Event};
+use notify::{Event, RecursiveMode, Watcher};
 use std::path::PathBuf;
 use tokio::sync::mpsc;
 use tracing::info;
@@ -10,7 +10,11 @@ use tracing::info;
 pub enum AppChange {
     Installed(String),
     Uninstalled(String),
-    Updated { app: String, old_version: String, new_version: String },
+    Updated {
+        app: String,
+        old_version: String,
+        new_version: String,
+    },
 }
 
 pub struct AppWatcher {
@@ -40,7 +44,9 @@ impl AppWatcher {
 
         #[cfg(target_os = "windows")]
         {
-            paths.push(PathBuf::from("C:\\ProgramData\\Microsoft\\Windows\\Start Menu"));
+            paths.push(PathBuf::from(
+                "C:\\ProgramData\\Microsoft\\Windows\\Start Menu",
+            ));
         }
 
         paths

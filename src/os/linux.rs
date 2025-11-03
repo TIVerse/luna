@@ -3,10 +3,10 @@
 //! Linux system integration using D-Bus and .desktop files.
 
 #[cfg(target_os = "linux")]
-use crate::error::{Result, LunaError};
+use crate::error::{LunaError, Result};
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::fs;
 
 #[cfg(target_os = "linux")]
 /// Linux-specific functionality
@@ -32,13 +32,13 @@ impl LinuxInterface {
             desktop_cache: Vec::new(),
         })
     }
-    
+
     /// Initialize the interface by scanning desktop files
     pub fn init(&mut self) -> Result<()> {
         self.desktop_cache = self.scan_desktop_files()?;
         Ok(())
     }
-    
+
     /// Scan for .desktop files
     fn scan_desktop_files(&self) -> Result<Vec<DesktopEntry>> {
         let mut entries = Vec::new();
@@ -49,12 +49,12 @@ impl LinuxInterface {
                 .map(|h| h.join(".local/share/applications"))
                 .unwrap_or_else(|| PathBuf::from("/tmp")),
         ];
-        
+
         for search_path in search_paths {
             if !search_path.exists() {
                 continue;
             }
-            
+
             if let Ok(entries_iter) = fs::read_dir(&search_path) {
                 for entry in entries_iter.flatten() {
                     let path = entry.path();
@@ -66,38 +66,39 @@ impl LinuxInterface {
                 }
             }
         }
-        
+
         Ok(entries)
     }
-    
+
     /// Parse a .desktop file
     fn parse_desktop_file(&self, path: &Path) -> Result<DesktopEntry> {
-        let contents = fs::read_to_string(path)
-            .map_err(|e| LunaError::SystemOperation(format!("Failed to read desktop file: {}", e)))?;
-        
+        let contents = fs::read_to_string(path).map_err(|e| {
+            LunaError::SystemOperation(format!("Failed to read desktop file: {}", e))
+        })?;
+
         let mut name = String::new();
         let mut exec = String::new();
         let mut icon = None;
         let mut categories = Vec::new();
         let mut in_desktop_entry = false;
-        
+
         for line in contents.lines() {
             let line = line.trim();
-            
+
             if line == "[Desktop Entry]" {
                 in_desktop_entry = true;
                 continue;
             }
-            
+
             if line.starts_with('[') && line.ends_with(']') {
                 in_desktop_entry = false;
                 continue;
             }
-            
+
             if !in_desktop_entry {
                 continue;
             }
-            
+
             if let Some((key, value)) = line.split_once('=') {
                 match key.trim() {
                     "Name" => name = value.trim().to_string(),
@@ -114,11 +115,13 @@ impl LinuxInterface {
                 }
             }
         }
-        
+
         if name.is_empty() || exec.is_empty() {
-            return Err(LunaError::SystemOperation("Invalid desktop file: missing Name or Exec".to_string()));
+            return Err(LunaError::SystemOperation(
+                "Invalid desktop file: missing Name or Exec".to_string(),
+            ));
         }
-        
+
         Ok(DesktopEntry {
             name,
             exec,
@@ -132,19 +135,17 @@ impl LinuxInterface {
 #[cfg(target_os = "linux")]
 pub fn launch_app_linux(path: &Path) -> Result<()> {
     // Try xdg-open first (works with .desktop files and paths)
-    let output = Command::new("xdg-open")
-        .arg(path)
-        .spawn();
-    
+    let output = Command::new("xdg-open").arg(path).spawn();
+
     if output.is_ok() {
         return Ok(());
     }
-    
+
     // Fallback: try to execute directly
     Command::new(path)
         .spawn()
         .map_err(|e| LunaError::SystemOperation(format!("Failed to launch app: {}", e)))?;
-    
+
     Ok(())
 }
 
@@ -168,12 +169,9 @@ pub fn get_volume_linux() -> Result<u8> {
             }
         }
     }
-    
+
     // Fallback: try amixer (ALSA)
-    if let Ok(output) = Command::new("amixer")
-        .args(["get", "Master"])
-        .output()
-    {
+    if let Ok(output) = Command::new("amixer").args(["get", "Master"]).output() {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
             // Parse output like "[80%]"
@@ -187,7 +185,7 @@ pub fn get_volume_linux() -> Result<u8> {
             }
         }
     }
-    
+
     // Default fallback
     Ok(50)
 }
@@ -196,41 +194,41 @@ pub fn get_volume_linux() -> Result<u8> {
 #[cfg(target_os = "linux")]
 pub fn set_volume_linux(level: u8) -> Result<()> {
     let level = level.min(100);
-    
+
     // Try pactl (PulseAudio) first
     let pactl_result = Command::new("pactl")
         .args(["set-sink-volume", "@DEFAULT_SINK@", &format!("{}%", level)])
         .status();
-    
+
     if pactl_result.is_ok() && pactl_result.unwrap().success() {
         return Ok(());
     }
-    
+
     // Fallback: try amixer (ALSA)
     let amixer_result = Command::new("amixer")
         .args(["set", "Master", &format!("{}%", level)])
         .status();
-    
+
     if amixer_result.is_ok() && amixer_result.unwrap().success() {
         return Ok(());
     }
-    
-    Err(LunaError::SystemOperation("Failed to set volume: no audio system available".to_string()))
+
+    Err(LunaError::SystemOperation(
+        "Failed to set volume: no audio system available".to_string(),
+    ))
 }
 
 /// Get list of installed packages
 #[cfg(target_os = "linux")]
 pub fn get_installed_packages() -> Result<Vec<String>> {
     let mut packages = Vec::new();
-    
+
     // Try dpkg (Debian/Ubuntu)
-    if let Ok(output) = Command::new("dpkg")
-        .args(["-l"])
-        .output()
-    {
+    if let Ok(output) = Command::new("dpkg").args(["-l"]).output() {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            for line in stdout.lines().skip(5) { // Skip header lines
+            for line in stdout.lines().skip(5) {
+                // Skip header lines
                 if let Some(name) = line.split_whitespace().nth(1) {
                     packages.push(name.to_string());
                 }
@@ -238,19 +236,16 @@ pub fn get_installed_packages() -> Result<Vec<String>> {
             return Ok(packages);
         }
     }
-    
+
     // Try rpm (RedHat/Fedora)
-    if let Ok(output) = Command::new("rpm")
-        .args(["-qa"])
-        .output()
-    {
+    if let Ok(output) = Command::new("rpm").args(["-qa"]).output() {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
             packages.extend(stdout.lines().map(|s| s.to_string()));
             return Ok(packages);
         }
     }
-    
+
     Ok(packages)
 }
 
@@ -258,14 +253,12 @@ pub fn get_installed_packages() -> Result<Vec<String>> {
 #[cfg(target_os = "linux")]
 pub fn get_snap_packages() -> Result<Vec<(String, PathBuf)>> {
     let mut packages = Vec::new();
-    
-    if let Ok(output) = Command::new("snap")
-        .args(["list"])
-        .output()
-    {
+
+    if let Ok(output) = Command::new("snap").args(["list"]).output() {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            for line in stdout.lines().skip(1) { // Skip header
+            for line in stdout.lines().skip(1) {
+                // Skip header
                 if let Some(name) = line.split_whitespace().next() {
                     let path = PathBuf::from(format!("/snap/bin/{}", name));
                     if path.exists() {
@@ -275,7 +268,7 @@ pub fn get_snap_packages() -> Result<Vec<(String, PathBuf)>> {
             }
         }
     }
-    
+
     Ok(packages)
 }
 
@@ -283,11 +276,8 @@ pub fn get_snap_packages() -> Result<Vec<(String, PathBuf)>> {
 #[cfg(target_os = "linux")]
 pub fn get_flatpak_packages() -> Result<Vec<String>> {
     let mut packages = Vec::new();
-    
-    if let Ok(output) = Command::new("flatpak")
-        .args(["list", "--app"])
-        .output()
-    {
+
+    if let Ok(output) = Command::new("flatpak").args(["list", "--app"]).output() {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
             for line in stdout.lines() {
@@ -297,6 +287,6 @@ pub fn get_flatpak_packages() -> Result<Vec<String>> {
             }
         }
     }
-    
+
     Ok(packages)
 }

@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 pub struct FileIndex {
     /// List of indexed files
     files: Vec<FileEntry>,
-    
+
     /// Last update timestamp
     last_updated: i64,
 }
@@ -29,9 +29,9 @@ impl FileIndex {
 
     /// Load index from disk
     pub async fn load_from_disk<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let contents = tokio::fs::read_to_string(path.as_ref()).await.map_err(|e| {
-            LunaError::Database(format!("Failed to load file index: {}", e))
-        })?;
+        let contents = tokio::fs::read_to_string(path.as_ref())
+            .await
+            .map_err(|e| LunaError::Database(format!("Failed to load file index: {}", e)))?;
 
         let index: FileIndex = serde_json::from_str(&contents)?;
         Ok(index)
@@ -40,16 +40,16 @@ impl FileIndex {
     /// Save index to disk
     pub async fn save_to_disk<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         let contents = serde_json::to_string_pretty(self)?;
-        
+
         if let Some(parent) = path.as_ref().parent() {
-            tokio::fs::create_dir_all(parent).await.map_err(|e| {
-                LunaError::Database(format!("Failed to create directory: {}", e))
-            })?;
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| LunaError::Database(format!("Failed to create directory: {}", e)))?;
         }
-        
-        tokio::fs::write(path.as_ref(), contents).await.map_err(|e| {
-            LunaError::Database(format!("Failed to save file index: {}", e))
-        })?;
+
+        tokio::fs::write(path.as_ref(), contents)
+            .await
+            .map_err(|e| LunaError::Database(format!("Failed to save file index: {}", e)))?;
 
         Ok(())
     }
@@ -127,7 +127,7 @@ mod tests {
     #[test]
     fn test_add_and_search() {
         let mut index = FileIndex::new();
-        
+
         let file = FileEntry {
             path: PathBuf::from("/home/user/document.txt"),
             name: "document.txt".to_string(),
@@ -136,9 +136,9 @@ mod tests {
             modified: 0,
             file_type: FileType::Document,
         };
-        
+
         index.add_file(file);
-        
+
         let results = index.search_by_name("document");
         assert_eq!(results.len(), 1);
     }

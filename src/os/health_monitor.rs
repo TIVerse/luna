@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
-use tracing::{info, warn, debug};
+use tracing::{debug, info, warn};
 
 #[cfg(feature = "full")]
-use sysinfo::{System, SystemExt, ProcessExt};
+use sysinfo::{ProcessExt, System, SystemExt};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum HealthIssue {
@@ -92,23 +92,27 @@ impl HealthMonitor {
 
     pub async fn detect_issues(&self) -> Vec<HealthIssue> {
         let mut issues = Vec::new();
-        
+
         // Detect high memory
         let mem_usage = self.check_memory_usage().await;
         if mem_usage > 90 {
             issues.push(HealthIssue::HighMemoryUsage);
-            self.emit_health_event(HealthIssue::HighMemoryUsage, "Critical").await;
+            self.emit_health_event(HealthIssue::HighMemoryUsage, "Critical")
+                .await;
         } else if mem_usage > 75 {
-            self.emit_health_event(HealthIssue::HighMemoryUsage, "Warning").await;
+            self.emit_health_event(HealthIssue::HighMemoryUsage, "Warning")
+                .await;
         }
 
         // Detect high CPU
         let cpu_usage = self.check_cpu_usage().await;
         if cpu_usage > 95.0 {
             issues.push(HealthIssue::HighCpuUsage);
-            self.emit_health_event(HealthIssue::HighCpuUsage, "Critical").await;
+            self.emit_health_event(HealthIssue::HighCpuUsage, "Critical")
+                .await;
         } else if cpu_usage > 80.0 {
-            self.emit_health_event(HealthIssue::HighCpuUsage, "Warning").await;
+            self.emit_health_event(HealthIssue::HighCpuUsage, "Warning")
+                .await;
         }
 
         issues
@@ -137,19 +141,21 @@ impl HealthMonitor {
         }
         30.0 // Default for testing
     }
-    
+
     async fn emit_health_event(&self, issue: HealthIssue, severity: &str) {
         if let Some(ref bus) = self.event_bus {
-            let _ = bus.publish(LunaEvent::HealthIssueDetected {
-                issue_type: format!("{:?}", issue),
-                severity: severity.to_string(),
-            }).await;
+            let _ = bus
+                .publish(LunaEvent::HealthIssueDetected {
+                    issue_type: format!("{:?}", issue),
+                    severity: severity.to_string(),
+                })
+                .await;
         }
     }
 
     pub async fn remediate(&self, issue: &HealthIssue) -> Result<()> {
         warn!("Remediating issue: {:?}", issue);
-        
+
         let action = match issue {
             HealthIssue::HighMemoryUsage => {
                 info!("Clearing caches and optimizing memory");
@@ -161,23 +167,25 @@ impl HealthMonitor {
             }
             _ => "no_action".to_string(),
         };
-        
+
         // Emit remediation event
         if let Some(ref bus) = self.event_bus {
-            let _ = bus.publish(LunaEvent::HealthRemediated {
-                issue_type: format!("{:?}", issue),
-                action_taken: action,
-            }).await;
+            let _ = bus
+                .publish(LunaEvent::HealthRemediated {
+                    issue_type: format!("{:?}", issue),
+                    action_taken: action,
+                })
+                .await;
         }
 
         Ok(())
     }
-    
+
     /// Check if system is healthy enough for TTS
     pub async fn can_speak(&self) -> bool {
         let cpu = self.check_cpu_usage().await;
         let mem = self.check_memory_usage().await;
-        
+
         // Don't speak if system is under extreme load
         cpu < 98.0 && mem < 95
     }

@@ -12,7 +12,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use sysinfo::System;
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn, error};
+use tracing::{debug, error, info, warn};
 
 /// System metrics snapshot
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -131,12 +131,15 @@ impl MetricsHistory {
 
         // Get last 10 samples
         let recent: Vec<_> = self.samples.iter().rev().take(10).collect();
-        
+
         // Calculate trend
         let mut rate_mb_per_sec = 0.0;
         for i in 1..recent.len() {
-            let delta_mb = recent[i-1].memory_used_mb as f64 - recent[i].memory_used_mb as f64;
-            let delta_sec = recent[i-1].timestamp.duration_since(recent[i].timestamp).as_secs_f64();
+            let delta_mb = recent[i - 1].memory_used_mb as f64 - recent[i].memory_used_mb as f64;
+            let delta_sec = recent[i - 1]
+                .timestamp
+                .duration_since(recent[i].timestamp)
+                .as_secs_f64();
             if delta_sec > 0.0 {
                 rate_mb_per_sec += delta_mb / delta_sec;
             }
@@ -167,18 +170,24 @@ impl MetricsHistory {
         }
 
         let recent: Vec<_> = self.samples.iter().rev().take(5).collect();
-        
+
         // Check for CPU spike
         let avg_cpu: f32 = recent[1..].iter().map(|m| m.cpu_total).sum::<f32>() / 4.0;
         if recent[0].cpu_total > avg_cpu * 1.5 {
-            anomalies.push(format!("CPU spike: {:.1}% (avg: {:.1}%)", recent[0].cpu_total, avg_cpu));
+            anomalies.push(format!(
+                "CPU spike: {:.1}% (avg: {:.1}%)",
+                recent[0].cpu_total, avg_cpu
+            ));
         }
 
         // Check for memory spike
         let avg_mem: u64 = recent[1..].iter().map(|m| m.memory_used_mb).sum::<u64>() / 4;
         let mem_increase = recent[0].memory_used_mb as f64 / avg_mem as f64;
         if mem_increase > 1.3 {
-            anomalies.push(format!("Memory spike: {}MB (avg: {}MB)", recent[0].memory_used_mb, avg_mem));
+            anomalies.push(format!(
+                "Memory spike: {}MB (avg: {}MB)",
+                recent[0].memory_used_mb, avg_mem
+            ));
         }
 
         anomalies
@@ -196,7 +205,11 @@ impl OptimizationEngine {
     }
 
     /// Auto-kill memory hogs when threshold exceeded
-    pub async fn optimize_memory(&self, system: &mut System, threshold_percent: u8) -> Result<Vec<u32>> {
+    pub async fn optimize_memory(
+        &self,
+        system: &mut System,
+        threshold_percent: u8,
+    ) -> Result<Vec<u32>> {
         if !self.enabled {
             return Ok(Vec::new());
         }
@@ -212,7 +225,9 @@ impl OptimizationEngine {
         warn!("Memory usage at {}%, running optimization", usage_percent);
 
         // Find memory hogs
-        let mut processes: Vec<_> = system.processes().iter()
+        let mut processes: Vec<_> = system
+            .processes()
+            .iter()
             .map(|(pid, proc)| (*pid, proc.memory()))
             .collect();
         processes.sort_by_key(|(_, mem)| std::cmp::Reverse(*mem));
@@ -223,9 +238,13 @@ impl OptimizationEngine {
         for (pid, mem_bytes) in processes.iter().take(5) {
             let mem_mb = mem_bytes / 1024 / 1024;
             if mem_mb > 500 {
-                warn!("Killing memory hog: PID {} using {}MB", pid.as_u32(), mem_mb);
+                warn!(
+                    "Killing memory hog: PID {} using {}MB",
+                    pid.as_u32(),
+                    mem_mb
+                );
                 killed.push(pid.as_u32());
-                
+
                 #[cfg(target_os = "linux")]
                 {
                     use nix::sys::signal::{kill as nix_kill, Signal};
@@ -379,7 +398,10 @@ impl ResourceMonitor {
 
                     // Predict memory fill
                     if let Some(time_to_fill) = h.predict_memory_full() {
-                        warn!("Memory will fill in approximately {} seconds", time_to_fill.as_secs());
+                        warn!(
+                            "Memory will fill in approximately {} seconds",
+                            time_to_fill.as_secs()
+                        );
                     }
                 }
 
@@ -455,14 +477,16 @@ impl ResourceMonitor {
                         "level": "critical",
                         "value": metrics.cpu_total,
                     }),
-                }).await;
+                })
+                .await;
             }
         } else if metrics.cpu_total > thresholds.cpu_warning {
             warn!("WARNING: CPU usage at {:.1}%", metrics.cpu_total);
         }
 
         // Memory check
-        let memory_percent = ((metrics.memory_used_mb as f64 / metrics.memory_total_mb as f64) * 100.0) as u8;
+        let memory_percent =
+            ((metrics.memory_used_mb as f64 / metrics.memory_total_mb as f64) * 100.0) as u8;
         if memory_percent > thresholds.memory_critical {
             warn!("CRITICAL: Memory usage at {}%", memory_percent);
             if let Some(ref bus) = event_bus {
@@ -473,7 +497,8 @@ impl ResourceMonitor {
                         "level": "critical",
                         "value": memory_percent,
                     }),
-                }).await;
+                })
+                .await;
             }
         } else if memory_percent > thresholds.memory_warning {
             warn!("WARNING: Memory usage at {}%", memory_percent);
@@ -496,9 +521,12 @@ impl ResourceMonitor {
         info!("Running system optimization");
 
         let mut system = self.system.write().await;
-        
+
         // Optimize memory
-        let killed = self.optimization_engine.optimize_memory(&mut system, 90).await?;
+        let killed = self
+            .optimization_engine
+            .optimize_memory(&mut system, 90)
+            .await?;
         if !killed.is_empty() {
             info!("Killed {} memory-intensive processes", killed.len());
         }
@@ -537,16 +565,16 @@ mod tests {
         let monitor = ResourceMonitor::new();
         let result = monitor.start_monitoring().await;
         assert!(result.is_ok());
-        
+
         tokio::time::sleep(Duration::from_secs(1)).await;
-        
+
         monitor.stop_monitoring().await;
     }
 
     #[test]
     fn test_metrics_history() {
         let mut history = MetricsHistory::new(10);
-        
+
         for i in 0..15 {
             let metrics = SystemMetrics {
                 timestamp: Instant::now(),

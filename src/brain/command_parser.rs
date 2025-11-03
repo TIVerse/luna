@@ -3,12 +3,12 @@
 //! Parses natural language text into structured commands using regex patterns.
 //! Optimized with RegexSet for parallel pattern matching.
 
-use once_cell::sync::Lazy;
-use regex::{Regex, RegexSet, Captures};
-use std::collections::HashMap;
 use crate::error::{LunaError, Result};
-use tracing::{debug, info};
+use once_cell::sync::Lazy;
+use regex::{Captures, Regex, RegexSet};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use tracing::{debug, info};
 
 /// Intent types that LUNA can understand
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -75,38 +75,34 @@ impl CommandParser {
     /// Create a new command parser with predefined patterns
     pub fn new() -> Self {
         let patterns = Self::build_patterns();
-        
+
         // Build RegexSet for fast pre-filtering
-        let pattern_strings: Vec<&str> = patterns
-            .iter()
-            .map(|p| p.regex.as_str())
-            .collect();
-        
-        let regex_set = RegexSet::new(pattern_strings)
-            .expect("Failed to build RegexSet");
-        
+        let pattern_strings: Vec<&str> = patterns.iter().map(|p| p.regex.as_str()).collect();
+
+        let regex_set = RegexSet::new(pattern_strings).expect("Failed to build RegexSet");
+
         Self {
             patterns,
             regex_set,
         }
     }
-    
+
     /// Parse text into a command (optimized with RegexSet)
     pub fn parse(&self, text: &str) -> Result<ParsedCommand> {
         let normalized = self.normalize_text(text);
         debug!("Parsing text: '{}' (normalized: '{}')", text, normalized);
-        
+
         // Fast pre-filter with RegexSet (parallel matching)
         let matches = self.regex_set.matches(&normalized);
-        
+
         // Only evaluate matched patterns (typically 1-2 instead of all 20+)
         for idx in matches.iter() {
             if let Some(captures) = self.patterns[idx].regex.captures(&normalized) {
                 let entities = (self.patterns[idx].extract_entities)(&captures);
                 let intent = self.patterns[idx].intent.clone();
-                
+
                 info!("Matched intent: {:?}, entities: {:?}", intent, entities);
-                
+
                 return Ok(ParsedCommand {
                     intent,
                     entities,
@@ -115,7 +111,7 @@ impl CommandParser {
                 });
             }
         }
-        
+
         // No pattern matched
         info!("No pattern matched for: '{}'", text);
         Ok(ParsedCommand {
@@ -125,14 +121,12 @@ impl CommandParser {
             confidence: 0.0,
         })
     }
-    
+
     /// Normalize text for better matching
     fn normalize_text(&self, text: &str) -> String {
-        text.to_lowercase()
-            .trim()
-            .to_string()
+        text.to_lowercase().trim().to_string()
     }
-    
+
     /// Build all command patterns
     fn build_patterns() -> Vec<CommandPattern> {
         vec![
@@ -146,7 +140,6 @@ impl CommandParser {
                     map
                 },
             },
-            
             // Close app: "close chrome", "quit firefox", "exit vscode"
             CommandPattern {
                 regex: Regex::new(r"^(?:close|quit|exit|kill)\s+(.+)$").unwrap(),
@@ -157,7 +150,6 @@ impl CommandParser {
                     map
                 },
             },
-            
             // Find file: "find budget.pdf", "search for report", "locate document"
             CommandPattern {
                 regex: Regex::new(r"^(?:find|search\s+for|locate)\s+(.+)$").unwrap(),
@@ -168,7 +160,6 @@ impl CommandParser {
                     map
                 },
             },
-            
             // Open folder: "open downloads folder", "show me documents"
             CommandPattern {
                 regex: Regex::new(r"^(?:open|show\s+me)\s+(?:the\s+)?(.+?)\s+folder$").unwrap(),
@@ -179,7 +170,6 @@ impl CommandParser {
                     map
                 },
             },
-            
             // Volume control: "volume up", "turn down volume", "mute"
             CommandPattern {
                 regex: Regex::new(r"^(?:volume|sound)\s+(up|down|mute|unmute)$").unwrap(),
@@ -190,7 +180,6 @@ impl CommandParser {
                     map
                 },
             },
-            
             CommandPattern {
                 regex: Regex::new(r"^(?:turn\s+)?(?:up|down)\s+(?:the\s+)?volume$").unwrap(),
                 intent: IntentType::VolumeControl,
@@ -202,7 +191,6 @@ impl CommandParser {
                     map
                 },
             },
-            
             CommandPattern {
                 regex: Regex::new(r"^mute$").unwrap(),
                 intent: IntentType::VolumeControl,
@@ -212,10 +200,10 @@ impl CommandParser {
                     map
                 },
             },
-            
             // System control: "lock computer", "shutdown", "restart"
             CommandPattern {
-                regex: Regex::new(r"^(?:lock|sleep|shutdown|restart)\s*(?:computer|system)?$").unwrap(),
+                regex: Regex::new(r"^(?:lock|sleep|shutdown|restart)\s*(?:computer|system)?$")
+                    .unwrap(),
                 intent: IntentType::SystemControl,
                 extract_entities: |caps| {
                     let mut map = HashMap::new();
@@ -233,10 +221,10 @@ impl CommandParser {
                     map
                 },
             },
-            
             // Media control: "play music", "pause", "next song"
             CommandPattern {
-                regex: Regex::new(r"^(play|pause|stop|next|previous)(?:\s+(?:song|music|track))?$").unwrap(),
+                regex: Regex::new(r"^(play|pause|stop|next|previous)(?:\s+(?:song|music|track))?$")
+                    .unwrap(),
                 intent: IntentType::MediaControl,
                 extract_entities: |caps| {
                     let mut map = HashMap::new();
@@ -244,7 +232,6 @@ impl CommandParser {
                     map
                 },
             },
-            
             // Search web: "search for rust tutorials", "google machine learning"
             CommandPattern {
                 regex: Regex::new(r"^(?:search\s+(?:for|the\s+web\s+for)|google)\s+(.+)$").unwrap(),
@@ -255,7 +242,6 @@ impl CommandParser {
                     map
                 },
             },
-            
             // Reminder: "remind me about meeting in 30 minutes"
             CommandPattern {
                 regex: Regex::new(r"^remind\s+me\s+(?:about\s+)?(.+?)\s+in\s+(.+)$").unwrap(),
@@ -267,7 +253,6 @@ impl CommandParser {
                     map
                 },
             },
-            
             // Note: "take a note buy milk"
             CommandPattern {
                 regex: Regex::new(r"^(?:take\s+a\s+note|note|write\s+down)\s*:?\s*(.+)$").unwrap(),
@@ -278,28 +263,34 @@ impl CommandParser {
                     map
                 },
             },
-            
             // Time: "what time is it", "current time"
             CommandPattern {
-                regex: Regex::new(r"^(?:what\s+time\s+is\s+it|current\s+time|tell\s+me\s+the\s+time)").unwrap(),
+                regex: Regex::new(
+                    r"^(?:what\s+time\s+is\s+it|current\s+time|tell\s+me\s+the\s+time)",
+                )
+                .unwrap(),
                 intent: IntentType::GetTime,
                 extract_entities: |_caps| HashMap::new(),
             },
-            
             // Date: "what's the date", "today's date"
             CommandPattern {
-                regex: Regex::new(r"^(?:what(?:'s|\s+is)\s+the\s+date|today(?:'s|\s+)date|current\s+date)").unwrap(),
+                regex: Regex::new(
+                    r"^(?:what(?:'s|\s+is)\s+the\s+date|today(?:'s|\s+)date|current\s+date)",
+                )
+                .unwrap(),
                 intent: IntentType::GetDate,
                 extract_entities: |_caps| HashMap::new(),
             },
-            
             // Question: "what is...", "how do I...", "why..."
             CommandPattern {
                 regex: Regex::new(r"^(?:what|how|why|when|where|who)\s+.+$").unwrap(),
                 intent: IntentType::Question,
                 extract_entities: |caps| {
                     let mut map = HashMap::new();
-                    map.insert("question".to_string(), caps.get(0).unwrap().as_str().to_string());
+                    map.insert(
+                        "question".to_string(),
+                        caps.get(0).unwrap().as_str().to_string(),
+                    );
                     map
                 },
             },
@@ -321,7 +312,7 @@ mod tests {
     fn test_parse_launch_app() {
         let parser = CommandParser::new();
         let result = parser.parse("open chrome").unwrap();
-        
+
         assert_eq!(result.intent, IntentType::LaunchApp);
         assert_eq!(result.entities.get("app_name"), Some(&"chrome".to_string()));
         assert!(result.confidence > 0.9);
@@ -331,28 +322,34 @@ mod tests {
     fn test_parse_close_app() {
         let parser = CommandParser::new();
         let result = parser.parse("close firefox").unwrap();
-        
+
         assert_eq!(result.intent, IntentType::CloseApp);
-        assert_eq!(result.entities.get("app_name"), Some(&"firefox".to_string()));
+        assert_eq!(
+            result.entities.get("app_name"),
+            Some(&"firefox".to_string())
+        );
     }
 
     #[test]
     fn test_parse_find_file() {
         let parser = CommandParser::new();
         let result = parser.parse("find budget.pdf").unwrap();
-        
+
         assert_eq!(result.intent, IntentType::FindFile);
-        assert_eq!(result.entities.get("file_name"), Some(&"budget.pdf".to_string()));
+        assert_eq!(
+            result.entities.get("file_name"),
+            Some(&"budget.pdf".to_string())
+        );
     }
 
     #[test]
     fn test_parse_volume_control() {
         let parser = CommandParser::new();
-        
+
         let result = parser.parse("volume up").unwrap();
         assert_eq!(result.intent, IntentType::VolumeControl);
         assert_eq!(result.entities.get("action"), Some(&"up".to_string()));
-        
+
         let result = parser.parse("mute").unwrap();
         assert_eq!(result.intent, IntentType::VolumeControl);
         assert_eq!(result.entities.get("action"), Some(&"mute".to_string()));
@@ -361,10 +358,10 @@ mod tests {
     #[test]
     fn test_parse_time_date() {
         let parser = CommandParser::new();
-        
+
         let result = parser.parse("what time is it").unwrap();
         assert_eq!(result.intent, IntentType::GetTime);
-        
+
         let result = parser.parse("what's the date").unwrap();
         assert_eq!(result.intent, IntentType::GetDate);
     }
@@ -373,7 +370,7 @@ mod tests {
     fn test_parse_unknown() {
         let parser = CommandParser::new();
         let result = parser.parse("blah blah nonsense").unwrap();
-        
+
         assert_eq!(result.intent, IntentType::Unknown);
         assert_eq!(result.confidence, 0.0);
     }
@@ -382,7 +379,7 @@ mod tests {
     fn test_case_insensitive() {
         let parser = CommandParser::new();
         let result = parser.parse("OPEN CHROME").unwrap();
-        
+
         assert_eq!(result.intent, IntentType::LaunchApp);
         assert_eq!(result.entities.get("app_name"), Some(&"chrome".to_string()));
     }
@@ -390,10 +387,15 @@ mod tests {
     #[test]
     fn test_parse_reminder() {
         let parser = CommandParser::new();
-        let result = parser.parse("remind me about meeting in 30 minutes").unwrap();
-        
+        let result = parser
+            .parse("remind me about meeting in 30 minutes")
+            .unwrap();
+
         assert_eq!(result.intent, IntentType::Reminder);
         assert_eq!(result.entities.get("message"), Some(&"meeting".to_string()));
-        assert_eq!(result.entities.get("duration"), Some(&"30 minutes".to_string()));
+        assert_eq!(
+            result.entities.get("duration"),
+            Some(&"30 minutes".to_string())
+        );
     }
 }

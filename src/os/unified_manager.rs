@@ -9,18 +9,12 @@ use crate::metrics::Metrics;
 use std::sync::Arc;
 
 use super::{
-    automation::AutomationEngine,
-    clipboard_manager::ClipboardManager,
-    desktop_environment::DesktopEnvironment,
-    health_monitor::HealthMonitor,
-    multi_monitor::MultiMonitorManager,
-    performance_optimizer::PerformanceOptimizer,
-    power_manager::PowerManager,
-    process_manager::ProcessManager,
-    process_priority::ProcessOptimizer,
-    resource_monitor::ResourceMonitor,
-    smart_app_index::SmartAppIndex,
-    virtual_desktop::VirtualDesktopManager,
+    automation::AutomationEngine, clipboard_manager::ClipboardManager,
+    desktop_environment::DesktopEnvironment, health_monitor::HealthMonitor,
+    multi_monitor::MultiMonitorManager, performance_optimizer::PerformanceOptimizer,
+    power_manager::PowerManager, process_manager::ProcessManager,
+    process_priority::ProcessOptimizer, resource_monitor::ResourceMonitor,
+    smart_app_index::SmartAppIndex, virtual_desktop::VirtualDesktopManager,
     window_manager::WindowManager,
 };
 
@@ -77,20 +71,12 @@ impl UnifiedOsManager {
     /// Add event bus to all components
     pub fn with_event_bus(mut self, event_bus: Arc<EventBus>) -> Self {
         self.event_bus = Some(event_bus.clone());
-        
+
         // Configure components with event bus
-        self.process_manager = Arc::new(
-            ProcessManager::new().with_event_bus(event_bus.clone())
-        );
-        self.multi_monitor = Arc::new(
-            MultiMonitorManager::new().with_event_bus(event_bus.clone())
-        );
-        self.resource_monitor = Arc::new(
-            ResourceMonitor::new().with_event_bus(event_bus.clone())
-        );
-        self.health_monitor = Arc::new(
-            HealthMonitor::new().with_event_bus(event_bus.clone())
-        );
+        self.process_manager = Arc::new(ProcessManager::new().with_event_bus(event_bus.clone()));
+        self.multi_monitor = Arc::new(MultiMonitorManager::new().with_event_bus(event_bus.clone()));
+        self.resource_monitor = Arc::new(ResourceMonitor::new().with_event_bus(event_bus.clone()));
+        self.health_monitor = Arc::new(HealthMonitor::new().with_event_bus(event_bus.clone()));
 
         self
     }
@@ -98,14 +84,10 @@ impl UnifiedOsManager {
     /// Add metrics to all components
     pub fn with_metrics(mut self, metrics: Arc<Metrics>) -> Self {
         self.metrics = Some(metrics.clone());
-        
+
         // Configure components with metrics
-        self.process_manager = Arc::new(
-            ProcessManager::new().with_metrics(metrics.clone())
-        );
-        self.resource_monitor = Arc::new(
-            ResourceMonitor::new().with_metrics(metrics.clone())
-        );
+        self.process_manager = Arc::new(ProcessManager::new().with_metrics(metrics.clone()));
+        self.resource_monitor = Arc::new(ResourceMonitor::new().with_metrics(metrics.clone()));
 
         self
     }
@@ -116,18 +98,21 @@ impl UnifiedOsManager {
 
         // Detect desktop environment
         self.desktop_environment = Some(DesktopEnvironment::detect().await?);
-        tracing::info!("Desktop environment detected: {:?}", self.desktop_environment.as_ref().unwrap().de_type);
+        tracing::info!(
+            "Desktop environment detected: {:?}",
+            self.desktop_environment.as_ref().unwrap().de_type
+        );
 
         // Detect displays
         self.multi_monitor.detect_displays().await?;
-        
+
         // Start monitoring services
         self.process_manager.start_monitoring().await?;
         self.resource_monitor.start_monitoring().await?;
         self.health_monitor.start_monitoring().await?;
 
         tracing::info!("✅ All Phase 5 God-Level enhancements initialized successfully");
-        
+
         Ok(())
     }
 
@@ -194,7 +179,7 @@ mod tests {
         let mut manager = UnifiedOsManager::new();
         let result = manager.initialize().await;
         assert!(result.is_ok());
-        
+
         manager.shutdown().await.unwrap();
     }
 
@@ -202,10 +187,10 @@ mod tests {
     async fn test_system_health() {
         let mut manager = UnifiedOsManager::new();
         manager.initialize().await.unwrap();
-        
+
         let health = manager.get_system_health().await;
         assert!(health.cpu_usage >= 0.0);
-        
+
         manager.shutdown().await.unwrap();
     }
 }

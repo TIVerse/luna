@@ -34,12 +34,12 @@ impl IntentClassifier {
             known_apps: Self::default_known_apps(),
         }
     }
-    
+
     /// Classify a parsed command and compute confidence
     pub fn classify(&self, command: &ParsedCommand) -> Result<ClassificationResult> {
         let mut confidence = command.confidence;
         let mut alternatives = Vec::new();
-        
+
         // Boost confidence if entities are validated
         if let Some(app_name) = command.entities.get("app_name") {
             if self.validate_app_name(app_name) {
@@ -53,19 +53,22 @@ impl IntentClassifier {
                 }
             }
         }
-        
+
         // Validate file names
         if let Some(file_name) = command.entities.get("file_name") {
             if self.looks_like_filename(file_name) {
                 confidence = (confidence * 1.05).min(1.0);
             }
         }
-        
+
         // Add context-based alternatives
         alternatives.extend(self.compute_alternatives(&command.intent, &command.entities));
-        
-        info!("Classified intent: {:?} with confidence: {:.2}", command.intent, confidence);
-        
+
+        info!(
+            "Classified intent: {:?} with confidence: {:.2}",
+            command.intent, confidence
+        );
+
         Ok(ClassificationResult {
             intent: command.intent.clone(),
             confidence,
@@ -73,30 +76,47 @@ impl IntentClassifier {
             alternatives,
         })
     }
-    
+
     /// Validate if a string is likely an app name
     fn validate_app_name(&self, name: &str) -> bool {
         let normalized = name.to_lowercase();
-        
+
         // Check against known apps
-        if self.known_apps.iter().any(|app| {
-            string_matching::fuzzy_match(&normalized, &app.to_lowercase(), 0.3)
-        }) {
+        if self
+            .known_apps
+            .iter()
+            .any(|app| string_matching::fuzzy_match(&normalized, &app.to_lowercase(), 0.3))
+        {
             return true;
         }
-        
+
         // Common app name patterns
         let common_apps = [
-            "chrome", "firefox", "edge", "safari",
-            "code", "vscode", "sublime", "atom",
-            "terminal", "iterm", "cmd", "powershell",
-            "slack", "discord", "teams", "zoom",
-            "spotify", "vlc", "itunes", "music",
+            "chrome",
+            "firefox",
+            "edge",
+            "safari",
+            "code",
+            "vscode",
+            "sublime",
+            "atom",
+            "terminal",
+            "iterm",
+            "cmd",
+            "powershell",
+            "slack",
+            "discord",
+            "teams",
+            "zoom",
+            "spotify",
+            "vlc",
+            "itunes",
+            "music",
         ];
-        
+
         common_apps.iter().any(|&app| normalized.contains(app))
     }
-    
+
     /// Check if string looks like a filename
     fn looks_like_filename(&self, name: &str) -> bool {
         // Has file extension
@@ -109,7 +129,7 @@ impl IntentClassifier {
         }
         false
     }
-    
+
     /// Compute alternative intents based on context
     fn compute_alternatives(
         &self,
@@ -117,7 +137,7 @@ impl IntentClassifier {
         entities: &HashMap<String, String>,
     ) -> Vec<(IntentType, f32)> {
         let mut alternatives = Vec::new();
-        
+
         match intent {
             IntentType::LaunchApp => {
                 // Might also want to find the app first
@@ -134,10 +154,10 @@ impl IntentClassifier {
             }
             _ => {}
         }
-        
+
         alternatives
     }
-    
+
     /// Default list of known applications
     fn default_known_apps() -> Vec<String> {
         vec![
@@ -153,14 +173,14 @@ impl IntentClassifier {
             "spotify".to_string(),
         ]
     }
-    
+
     /// Add a known app name
     pub fn add_known_app(&mut self, app_name: String) {
         if !self.known_apps.contains(&app_name.to_lowercase()) {
             self.known_apps.push(app_name.to_lowercase());
         }
     }
-    
+
     /// Bulk add known apps
     pub fn add_known_apps(&mut self, apps: Vec<String>) {
         for app in apps {
@@ -194,10 +214,10 @@ mod tests {
         let classifier = IntentClassifier::new();
         let mut entities = HashMap::new();
         entities.insert("app_name".to_string(), "chrome".to_string());
-        
+
         let command = create_test_command(IntentType::LaunchApp, entities);
         let result = classifier.classify(&command).unwrap();
-        
+
         assert!(result.confidence > 0.9);
         assert_eq!(result.intent, IntentType::LaunchApp);
     }
@@ -207,10 +227,10 @@ mod tests {
         let classifier = IntentClassifier::new();
         let mut entities = HashMap::new();
         entities.insert("app_name".to_string(), "unknownapp123".to_string());
-        
+
         let command = create_test_command(IntentType::LaunchApp, entities);
         let result = classifier.classify(&command).unwrap();
-        
+
         // Confidence should not be boosted for unknown apps
         assert_eq!(result.confidence, 0.9);
     }
@@ -218,7 +238,7 @@ mod tests {
     #[test]
     fn test_looks_like_filename() {
         let classifier = IntentClassifier::new();
-        
+
         assert!(classifier.looks_like_filename("document.pdf"));
         assert!(classifier.looks_like_filename("report.docx"));
         assert!(!classifier.looks_like_filename("chrome"));
@@ -229,7 +249,7 @@ mod tests {
     fn test_add_known_app() {
         let mut classifier = IntentClassifier::new();
         classifier.add_known_app("myapp".to_string());
-        
+
         assert!(classifier.validate_app_name("myapp"));
         assert!(classifier.validate_app_name("MyApp")); // Case insensitive
     }
@@ -239,7 +259,7 @@ mod tests {
         let classifier = IntentClassifier::new();
         let command = create_test_command(IntentType::LaunchApp, HashMap::new());
         let result = classifier.classify(&command).unwrap();
-        
+
         assert!(!result.alternatives.is_empty());
     }
 }

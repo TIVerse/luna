@@ -80,13 +80,15 @@ impl WindowManager {
 
     async fn tile_windows(&self, layout: TileLayout) -> Result<()> {
         info!("Tiling windows: {:?}", layout);
-        
+
         #[cfg(target_os = "linux")]
         {
             let positions = match layout {
                 TileLayout::Grid2x2 => vec![
-                    (0, 0, 50, 50), (50, 0, 50, 50),
-                    (0, 50, 50, 50), (50, 50, 50, 50),
+                    (0, 0, 50, 50),
+                    (50, 0, 50, 50),
+                    (0, 50, 50, 50),
+                    (50, 50, 50, 50),
                 ],
                 TileLayout::LeftRightSplit => vec![(0, 0, 50, 100), (50, 0, 50, 100)],
                 _ => vec![],
@@ -121,7 +123,8 @@ impl WindowManager {
     }
 
     pub fn create_group(&mut self, name: String, windows: Vec<u32>) {
-        self.groups.insert(name.clone(), WindowGroup { name, windows });
+        self.groups
+            .insert(name.clone(), WindowGroup { name, windows });
     }
 
     pub fn get_group(&self, name: &str) -> Option<&WindowGroup> {

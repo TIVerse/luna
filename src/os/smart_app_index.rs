@@ -5,7 +5,7 @@
 
 use crate::db::schema::Application;
 use crate::error::Result;
-use chrono::{DateTime, Utc, Timelike};
+use chrono::{DateTime, Timelike, Utc};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -45,7 +45,7 @@ impl EnhancedAppInfo {
     pub fn record_launch(&mut self) {
         self.launch_count += 1;
         self.last_used = Utc::now();
-        
+
         let hour = Utc::now().hour() as u8;
         if !self.typical_launch_times.contains(&hour) {
             self.typical_launch_times.push(hour);
@@ -84,9 +84,7 @@ impl UsagePredictor {
         }
 
         // Recency scoring
-        let hours_since_use = Utc::now()
-            .signed_duration_since(app.last_used)
-            .num_hours();
+        let hours_since_use = Utc::now().signed_duration_since(app.last_used).num_hours();
         if hours_since_use < 24 {
             score += 0.2;
         }
@@ -96,12 +94,17 @@ impl UsagePredictor {
 
     /// Suggest apps based on current context
     pub fn suggest_apps(&self, apps: &[EnhancedAppInfo], max_suggestions: usize) -> Vec<String> {
-        let mut scored: Vec<_> = apps.iter()
+        let mut scored: Vec<_> = apps
+            .iter()
             .map(|app| (app.basic.name.clone(), self.predict_score(app)))
             .collect();
 
         scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
-        scored.iter().take(max_suggestions).map(|(name, _)| name.clone()).collect()
+        scored
+            .iter()
+            .take(max_suggestions)
+            .map(|(name, _)| name.clone())
+            .collect()
     }
 }
 
@@ -119,7 +122,8 @@ impl FuzzySearchCache {
     pub fn search(&self, query: &str, candidates: &[String]) -> Vec<String> {
         let query_lower = query.to_lowercase();
 
-        let mut results: Vec<_> = candidates.iter()
+        let mut results: Vec<_> = candidates
+            .iter()
             .filter_map(|candidate| {
                 let score = jaro_winkler(&query_lower, &candidate.to_lowercase());
                 if score > 0.6 {
@@ -131,7 +135,11 @@ impl FuzzySearchCache {
             .collect();
 
         results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
-        results.iter().take(10).map(|(name, _)| name.clone()).collect()
+        results
+            .iter()
+            .take(10)
+            .map(|(name, _)| name.clone())
+            .collect()
     }
 }
 
@@ -154,10 +162,10 @@ impl SmartAppIndex {
     pub async fn index_app(&self, app: Application) {
         let mut apps = self.apps.write().await;
         let name = app.name.clone();
-        
+
         apps.entry(name.clone())
             .or_insert_with(|| EnhancedAppInfo::from_app(app));
-        
+
         debug!("Indexed app: {}", name);
     }
 
@@ -166,7 +174,10 @@ impl SmartAppIndex {
         let mut apps = self.apps.write().await;
         if let Some(app) = apps.get_mut(app_name) {
             app.record_launch();
-            info!("Recorded launch: {} (count: {})", app_name, app.launch_count);
+            info!(
+                "Recorded launch: {} (count: {})",
+                app_name, app.launch_count
+            );
         }
     }
 
@@ -174,10 +185,11 @@ impl SmartAppIndex {
     pub async fn search(&self, query: &str) -> Vec<EnhancedAppInfo> {
         let apps = self.apps.read().await;
         let candidates: Vec<_> = apps.keys().cloned().collect();
-        
+
         let matches = self.fuzzy_cache.search(query, &candidates);
-        
-        matches.iter()
+
+        matches
+            .iter()
             .filter_map(|name| apps.get(name).cloned())
             .collect()
     }
@@ -224,10 +236,10 @@ mod tests {
     #[tokio::test]
     async fn test_smart_app_index() {
         let index = SmartAppIndex::new();
-        
+
         let app = Application::new("Chrome".to_string(), PathBuf::from("/usr/bin/chrome"));
         index.index_app(app).await;
-        
+
         let stats = index.get_stats().await;
         assert_eq!(stats.0, 1);
     }
@@ -235,12 +247,12 @@ mod tests {
     #[tokio::test]
     async fn test_record_launch() {
         let index = SmartAppIndex::new();
-        
+
         let app = Application::new("VSCode".to_string(), PathBuf::from("/usr/bin/code"));
         index.index_app(app).await;
-        
+
         index.record_launch("VSCode").await;
-        
+
         let info = index.get_app("VSCode").await;
         assert!(info.is_some());
         assert_eq!(info.unwrap().launch_count, 1);
@@ -249,9 +261,12 @@ mod tests {
     #[tokio::test]
     async fn test_fuzzy_search() {
         let index = SmartAppIndex::new();
-        
+
         let apps = vec![
-            Application::new("Visual Studio Code".to_string(), PathBuf::from("/usr/bin/code")),
+            Application::new(
+                "Visual Studio Code".to_string(),
+                PathBuf::from("/usr/bin/code"),
+            ),
             Application::new("Chrome".to_string(), PathBuf::from("/usr/bin/chrome")),
             Application::new("Firefox".to_string(), PathBuf::from("/usr/bin/firefox")),
         ];
