@@ -285,6 +285,41 @@ impl Brain {
         // Resolve context
         let resolved_text = self.resolve_context(text);
 
+        // Check if this is a multi-intent command
+        let multi_parser = multi_intent::MultiIntentParser::new();
+        if multi_parser.is_multi_intent(&resolved_text) {
+            info!("   🔀 Multi-intent detected, using multi-intent parser");
+
+            // Parse multi-intent command
+            let multi_intent = multi_parser.parse(&resolved_text)?;
+
+            // Process each segment
+            let mut items = Vec::new();
+            for segment in &multi_intent.segments {
+                // Classify the segment
+                let classified = self.classifier.classify(&segment.command)?;
+
+                // Extract temporal duration if present
+                let duration = segment.temporal.as_ref().and_then(|t| {
+                    t.duration.map(|cd| {
+                        std::time::Duration::from_secs(cd.num_seconds() as u64)
+                    })
+                });
+
+                items.push((classified, duration));
+            }
+
+            // Plan multi-intent with coordination
+            let plan = self.planner.plan_multi(items, multi_intent.coordination);
+            info!("   Plan: {} steps (multi-intent)", plan.steps.len());
+
+            // Cache the plan
+            self.cache.put_plan(text, plan.clone());
+
+            return Ok(plan);
+        }
+
+        // Single-intent path
         // Parse
         let parsed = if let Some(cached_parsed) = self.cache.get_parsed(&resolved_text) {
             info!("   ✨ Parse cache hit");

@@ -4,10 +4,11 @@
 
 use crate::brain::IntentType;
 use chrono::Utc;
+use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
 /// Entry in the conversation history
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConversationEntry {
     /// Timestamp of the command
     pub timestamp: i64,
@@ -135,6 +136,39 @@ impl ConversationMemory {
                     || e.action_taken.to_lowercase().contains(&keyword_lower)
             })
             .collect()
+    }
+
+    /// Save conversation history to disk
+    pub async fn save_to_disk<P: AsRef<std::path::Path>>(
+        &self,
+        path: P,
+    ) -> crate::error::Result<()> {
+        let entries: Vec<ConversationEntry> = self.history.iter().cloned().collect();
+        let json = serde_json::to_string_pretty(&entries)?;
+        tokio::fs::write(path, json).await?;
+        Ok(())
+    }
+
+    /// Load conversation history from disk
+    pub async fn load_from_disk<P: AsRef<std::path::Path>>(
+        path: P,
+    ) -> crate::error::Result<Self> {
+        let path = path.as_ref();
+        
+        // If file doesn't exist, return empty memory
+        if !path.exists() {
+            return Ok(Self::new());
+        }
+
+        let json = tokio::fs::read_to_string(path).await?;
+        let entries: Vec<ConversationEntry> = serde_json::from_str(&json)?;
+        
+        let mut memory = Self::new();
+        for entry in entries {
+            memory.add_entry(entry);
+        }
+        
+        Ok(memory)
     }
 }
 

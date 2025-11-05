@@ -43,6 +43,7 @@ pub mod context;
 pub mod db;
 pub mod error;
 pub mod events;
+pub mod knowledge;
 pub mod metrics;
 pub mod os;
 pub mod runtime;
@@ -75,6 +76,29 @@ pub use brain::{
     GrammarConfig,
     IntentType,
     KnownAppProvider,
+};
+
+// Re-export knowledge system (Phase B1)
+pub use knowledge::{
+    Answer,
+    AnswerSource,
+    CurrentWeather,
+    DailyForecast,
+    Entity as KnowledgeEntity,
+    EntityType,
+    Fact,
+    FactConfidence,
+    KnowledgeGraph,
+    QuestionAnswerer,
+    QuestionType,
+    Relationship,
+    SearchEngine,
+    SearchResult,
+    WeatherCondition,
+    WeatherService,
+    WebSearcher,
+    WikiSummary,
+    WikipediaClient,
 };
 
 /// Library version

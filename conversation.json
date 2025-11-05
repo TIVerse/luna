@@ -1,0 +1,16 @@
+[
+  {
+    "timestamp": 1762300502,
+    "user_input": "hey luna can you please open chrome and search for rust programming tutorials",
+    "parsed_intent": "Unknown",
+    "action_taken": "Error: Invalid parameter: Missing query parameter",
+    "success": false
+  },
+  {
+    "timestamp": 1762301283,
+    "user_input": "hey luna can you please open chrome and search for rust programming tutorials",
+    "parsed_intent": "Unknown",
+    "action_taken": "Error: Invalid parameter: Missing query parameter",
+    "success": false
+  }
+]

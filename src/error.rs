@@ -150,6 +150,18 @@ pub enum LunaError {
     #[error("WAV file error: {0}")]
     Wav(#[from] hound::Error),
 
+    /// Network/HTTP errors (web search, APIs)
+    #[error("Network error: {0}")]
+    Network(String),
+
+    /// Parsing errors (data, responses)
+    #[error("Parse error: {0}")]
+    Parse(String),
+
+    /// Resource not found errors
+    #[error("Not found: {0}")]
+    NotFound(String),
+
     /// Generic unknown errors
     #[error("Unknown error: {0}")]
     Unknown(String),
@@ -249,6 +261,9 @@ impl LunaError {
             LunaError::Io(_) => ErrorCode::FileOperationFailed,
             LunaError::Json(_) | LunaError::Toml(_) => ErrorCode::ConfigInvalid,
             LunaError::Wav(_) => ErrorCode::AudioCaptureFailure,
+            LunaError::Network(_) => ErrorCode::Unknown,
+            LunaError::Parse(_) => ErrorCode::CommandParseFailure,
+            LunaError::NotFound(_) => ErrorCode::FileNotFound,
             LunaError::Unknown(_) => ErrorCode::Unknown,
         }
     }
@@ -266,6 +281,7 @@ impl LunaError {
                 | LunaError::WakeWord(_)
                 | LunaError::SpeechRecognition(_)
                 | LunaError::SystemOperation(_)
+                | LunaError::Network(_)
         )
     }
 
@@ -277,6 +293,8 @@ impl LunaError {
                 | LunaError::FileNotFound(_)
                 | LunaError::CommandParsing(_)
                 | LunaError::SystemOperation(_)
+                | LunaError::NotFound(_)
+                | LunaError::Network(_)
         )
     }
 
@@ -297,6 +315,12 @@ impl LunaError {
             }
             LunaError::SystemOperation(op) => {
                 format!("I couldn't perform that operation: {}", op)
+            }
+            LunaError::Network(_) => {
+                "Network error. Please check your internet connection.".to_string()
+            }
+            LunaError::NotFound(item) => {
+                format!("I couldn't find '{}'", item)
             }
             _ => "An error occurred. Please try again.".to_string(),
         }

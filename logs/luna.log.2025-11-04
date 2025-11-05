@@ -1,0 +1,242 @@
+[2m2025-11-04T23:51:47.688422Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🌙 LUNA Voice Assistant starting up...
+[2m2025-11-04T23:51:47.688439Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Version: 0.1.0
+[2m2025-11-04T23:51:47.688445Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Configuration loaded with layering + hot-reload enabled
+[2m2025-11-04T23:51:47.688449Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Sample Rate: 16000 Hz
+[2m2025-11-04T23:51:47.688453Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Wake Words: ["hey luna", "okay luna"]
+[2m2025-11-04T23:51:47.688457Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Log Level: info
+[2m2025-11-04T23:51:47.688460Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Data Directory: 
+[2m2025-11-04T23:51:47.688463Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Initializing event bus...
+[2m2025-11-04T23:51:47.688471Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Event bus initialized
+[2m2025-11-04T23:51:47.688474Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Initializing metrics...
+[2m2025-11-04T23:51:47.688477Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Metrics initialized
+[2m2025-11-04T23:51:47.688480Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Detecting system capabilities...
+[2m2025-11-04T23:51:47.688484Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m Detecting system capabilities...
+[2m2025-11-04T23:51:47.694919Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Audio Control (ALSA)' not available: amixer not found
+[2m2025-11-04T23:51:47.694941Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install alsa-utils
+[2m2025-11-04T23:51:47.695567Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Media Control (MPRIS)' not available: playerctl not found
+[2m2025-11-04T23:51:47.695581Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install playerctl
+[2m2025-11-04T23:51:47.696150Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Brightness Control (X11)' not available: xbacklight not found
+[2m2025-11-04T23:51:47.696163Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install xbacklight
+[2m2025-11-04T23:51:47.696867Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Brightness Control' not available: brightnessctl not found
+[2m2025-11-04T23:51:47.696890Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install brightnessctl
+[2m2025-11-04T23:51:47.697410Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Screen Lock (GNOME)' not available: gnome-screensaver-command not found
+[2m2025-11-04T23:51:47.697415Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: Pre-installed on GNOME
+[2m2025-11-04T23:51:47.701089Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Window Management' not available: wmctrl not found
+[2m2025-11-04T23:51:47.701109Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install wmctrl
+[2m2025-11-04T23:51:47.715639Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m 
+🔍 Capability Detection Summary
+[2m2025-11-04T23:51:47.715673Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2m2025-11-04T23:51:47.715684Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Available: 4/10
+[2m2025-11-04T23:51:47.715694Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2m2025-11-04T23:51:47.715703Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ✅ Audio Control (PulseAudio): pactl
+[2m2025-11-04T23:51:47.715712Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Audio Control (ALSA): amixer
+[2m2025-11-04T23:51:47.715737Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Media Control (MPRIS): playerctl
+[2m2025-11-04T23:51:47.715747Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Brightness Control (X11): xbacklight
+[2m2025-11-04T23:51:47.715756Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Brightness Control: brightnessctl
+[2m2025-11-04T23:51:47.715765Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Screen Lock (GNOME): gnome-screensaver-command
+[2m2025-11-04T23:51:47.715773Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ✅ Screen Lock (XDG): xdg-screensaver
+[2m2025-11-04T23:51:47.715782Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Window Management: wmctrl
+[2m2025-11-04T23:51:47.715791Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ✅ Window Management (Advanced): xdotool
+[2m2025-11-04T23:51:47.715800Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ✅ System Control (systemd): systemctl
+[2m2025-11-04T23:51:47.715810Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m 
+💡 Missing Capabilities:
+[2m2025-11-04T23:51:47.715871Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Audio Control (ALSA): sudo apt install alsa-utils
+[2m2025-11-04T23:51:47.715896Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Media Control (MPRIS): sudo apt install playerctl
+[2m2025-11-04T23:51:47.715901Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Brightness Control (X11): sudo apt install xbacklight
+[2m2025-11-04T23:51:47.715909Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Brightness Control: sudo apt install brightnessctl
+[2m2025-11-04T23:51:47.715914Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Screen Lock (GNOME): Pre-installed on GNOME
+[2m2025-11-04T23:51:47.715920Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Window Management: sudo apt install wmctrl
+[2m2025-11-04T23:51:47.715927Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[2m2025-11-04T23:51:47.715936Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Initializing components...
+[2m2025-11-04T23:51:47.715941Z[0m [32m INFO[0m [2mluna::audio[0m[2m:[0m Initializing audio system...
+[2m2025-11-04T23:51:47.715970Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m ✅ Wake word detector initialized (energy mode)
+[2m2025-11-04T23:51:47.715978Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Keywords: ["hey luna", "okay luna"]
+[2m2025-11-04T23:51:47.715985Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Sensitivity: 0.5
+[2m2025-11-04T23:51:47.715998Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m ⚠️  Whisper model not found at: models/whisper-base.bin
+[2m2025-11-04T23:51:47.716006Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m ✅ Speech-to-text initialized (simulated mode)
+[2m2025-11-04T23:51:47.716009Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m    For production, download Whisper model:
+[2m2025-11-04T23:51:47.716013Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m    wget https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+[2m2025-11-04T23:51:47.716017Z[0m [32m INFO[0m [2mluna::audio[0m[2m:[0m ✅ Audio system initialized
+[2m2025-11-04T23:51:47.716021Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Audio system initialized
+[2m2025-11-04T23:51:47.716025Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ⚠️  Note: Running in simulated mode for speech-to-text
+[2m2025-11-04T23:51:47.716031Z[0m [32m INFO[0m [2mluna[0m[2m:[0m    For production, download Whisper model to: models/whisper-base.bin
+[2m2025-11-04T23:51:47.716035Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m Initializing brain system with god-level enhancements...
+[2m2025-11-04T23:51:47.717877Z[0m [32m INFO[0m [2mluna::brain::grammar[0m[2m:[0m ✅ Loaded grammar config version 1.0 with 13 intents
+[2m2025-11-04T23:51:47.719903Z[0m [32m INFO[0m [2mluna::brain::grammar[0m[2m:[0m ✅ Compiled 16 patterns into grammar
+[2m2025-11-04T23:51:47.719928Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m ✅ Brain system initialized with caching, context, providers, and ranking
+[2m2025-11-04T23:51:47.719933Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Brain system initialized
+[2m2025-11-04T23:51:47.777910Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Discovered 105 applications
+[2m2025-11-04T23:51:47.777967Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Added 105 known apps to brain for classification boosting
+[2m2025-11-04T23:51:47.777977Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Task executor initialized
+[2m2025-11-04T23:51:47.777986Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m Initializing TTS system with engine: os
+[2m2025-11-04T23:51:47.777993Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m Initializing TTS synthesizer...
+[2m2025-11-04T23:51:47.778004Z[0m [32m INFO[0m [2mtts::backends::speech_dispatcher[0m[2m:[0m Initializing SpeechDispatcher backend
+[2m2025-11-04T23:51:47.779103Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m ✅ TTS synthesizer initialized with engine: os-tts
+[2m2025-11-04T23:51:47.779122Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m ✅ TTS system initialized
+[2m2025-11-04T23:51:47.779132Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ TTS system initialized
+[2m2025-11-04T23:51:47.779139Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m Starting TTS worker...
+[2m2025-11-04T23:51:47.779190Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m ✅ TTS worker started
+[2m2025-11-04T23:51:47.779216Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m TTS worker loop started
+[2m2025-11-04T23:51:47.779218Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ All systems ready
+[2m2025-11-04T23:51:47.779235Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 👂 LUNA is ready to listen!
+[2m2025-11-04T23:51:47.779260Z[0m [32m INFO[0m [2mluna::audio::capture[0m[2m:[0m Starting audio capture...
+[2m2025-11-04T23:51:47.779270Z[0m [32m INFO[0m [2mluna::audio::capture[0m[2m:[0m Using audio device: default
+[2m2025-11-04T23:51:47.787155Z[0m [32m INFO[0m [2mluna::audio::capture[0m[2m:[0m Audio config: SupportedStreamConfig { channels: 2, sample_rate: SampleRate(44100), buffer_size: Range { min: 1, max: 4194304 }, sample_format: F32 }
+[2m2025-11-04T23:51:47.800633Z[0m [32m INFO[0m [2mluna::audio::capture[0m[2m:[0m ✅ Audio capture started
+[2m2025-11-04T23:51:47.800684Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ Full Integration Complete
+[2m2025-11-04T23:51:47.800690Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Audio capture & wake word detection
+[2m2025-11-04T23:51:47.800695Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Speech-to-text processing
+[2m2025-11-04T23:51:47.800700Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Natural language understanding
+[2m2025-11-04T23:51:47.800704Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Task execution with retry logic
+[2m2025-11-04T23:51:47.800709Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Text-to-speech feedback
+[2m2025-11-04T23:51:47.800713Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Conversation memory
+[2m2025-11-04T23:51:47.800718Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Event bus & metrics tracking
+[2m2025-11-04T23:51:47.800732Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🎤 Main event loop starting... (Press Ctrl+C to shutdown)
+[2m2025-11-04T23:51:47.841395Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m 🔊 Speaking (interruptible): "Luna is ready"
+[2m2025-11-04T23:51:48.106036Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m 🎤 Wake word detected (energy: 0.076)
+[2m2025-11-04T23:51:48.106185Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 👂 Wake word detected!
+[2m2025-11-04T23:51:48.106276Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m ⏹️ Stopping TTS
+[2m2025-11-04T23:51:48.106773Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🎤 Listening for command...
+[2m2025-11-04T23:51:53.112788Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m 💬 Transcribed in 0.00s: "hey luna can you please open chrome and search for rust programming tutorials"
+[2m2025-11-04T23:51:53.113336Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 💬 Command received: "hey luna can you please open chrome and search for rust programming tutorials"
+[2m2025-11-04T23:51:53.113383Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m 🧠 Async processing: "hey luna can you please open chrome and search for rust programming tutorials"
+[2m2025-11-04T23:51:53.117429Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    🔀 Multi-intent detected, using multi-intent parser
+[2m2025-11-04T23:51:53.117504Z[0m [32m INFO[0m [2mluna::brain::command_parser[0m[2m:[0m No pattern matched for: 'hey luna can you please open chrome'
+[2m2025-11-04T23:51:53.117545Z[0m [32m INFO[0m [2mluna::brain::command_parser[0m[2m:[0m Matched intent: FindFile, entities: {"file_name": "rust programming tutorials"}
+[2m2025-11-04T23:51:53.117554Z[0m [32m INFO[0m [2mluna::brain::intent_classifier[0m[2m:[0m Classified intent: Unknown with confidence: 0.00
+[2m2025-11-04T23:51:53.117563Z[0m [32m INFO[0m [2mluna::brain::intent_classifier[0m[2m:[0m Classified intent: FindFile with confidence: 0.95
+[2m2025-11-04T23:51:53.117573Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Plan: 2 steps (multi-intent)
+[2m2025-11-04T23:51:53.117629Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🧠 Command processed in 4.254598ms
+[2m2025-11-04T23:51:53.117636Z[0m [32m INFO[0m [2mluna[0m[2m:[0m    Intent: Unknown, Confidence: 0.00
+[2m2025-11-04T23:51:53.117643Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ⚠️  Low confidence (0.00 < 0.70), requesting clarification...
+[2m2025-11-04T23:51:53.160684Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m 🔊 Speaking (interruptible): "I'm not confident I understood. Could you clarify?"
+[2m2025-11-04T23:54:48.516660Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🌙 LUNA Voice Assistant starting up...
+[2m2025-11-04T23:54:48.516711Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Version: 0.1.0
+[2m2025-11-04T23:54:48.516739Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Configuration loaded with layering + hot-reload enabled
+[2m2025-11-04T23:54:48.516764Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Sample Rate: 16000 Hz
+[2m2025-11-04T23:54:48.516790Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Wake Words: ["hey luna", "okay luna"]
+[2m2025-11-04T23:54:48.516814Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Log Level: info
+[2m2025-11-04T23:54:48.516836Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Data Directory: 
+[2m2025-11-04T23:54:48.516859Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Initializing event bus...
+[2m2025-11-04T23:54:48.516928Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Event bus initialized
+[2m2025-11-04T23:54:48.516955Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Initializing metrics...
+[2m2025-11-04T23:54:48.516980Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Metrics initialized
+[2m2025-11-04T23:54:48.517002Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Detecting system capabilities...
+[2m2025-11-04T23:54:48.517027Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m Detecting system capabilities...
+[2m2025-11-04T23:54:48.533221Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Audio Control (ALSA)' not available: amixer not found
+[2m2025-11-04T23:54:48.533274Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install alsa-utils
+[2m2025-11-04T23:54:48.534041Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Media Control (MPRIS)' not available: playerctl not found
+[2m2025-11-04T23:54:48.534096Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install playerctl
+[2m2025-11-04T23:54:48.534797Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Brightness Control (X11)' not available: xbacklight not found
+[2m2025-11-04T23:54:48.534825Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install xbacklight
+[2m2025-11-04T23:54:48.535321Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Brightness Control' not available: brightnessctl not found
+[2m2025-11-04T23:54:48.535343Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install brightnessctl
+[2m2025-11-04T23:54:48.536159Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Screen Lock (GNOME)' not available: gnome-screensaver-command not found
+[2m2025-11-04T23:54:48.536194Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: Pre-installed on GNOME
+[2m2025-11-04T23:54:48.540774Z[0m [33m WARN[0m [2mluna::actions::capabilities[0m[2m:[0m Capability 'Window Management' not available: wmctrl not found
+[2m2025-11-04T23:54:48.540811Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Install with: sudo apt install wmctrl
+[2m2025-11-04T23:54:48.565336Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m 
+🔍 Capability Detection Summary
+[2m2025-11-04T23:54:48.565403Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2m2025-11-04T23:54:48.565438Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   Available: 4/10
+[2m2025-11-04T23:54:48.565465Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2m2025-11-04T23:54:48.565492Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ✅ Audio Control (PulseAudio): pactl
+[2m2025-11-04T23:54:48.565519Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Audio Control (ALSA): amixer
+[2m2025-11-04T23:54:48.565542Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Media Control (MPRIS): playerctl
+[2m2025-11-04T23:54:48.565563Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Brightness Control (X11): xbacklight
+[2m2025-11-04T23:54:48.565585Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Brightness Control: brightnessctl
+[2m2025-11-04T23:54:48.565607Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Screen Lock (GNOME): gnome-screensaver-command
+[2m2025-11-04T23:54:48.565630Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ✅ Screen Lock (XDG): xdg-screensaver
+[2m2025-11-04T23:54:48.565652Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ❌ Window Management: wmctrl
+[2m2025-11-04T23:54:48.565673Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ✅ Window Management (Advanced): xdotool
+[2m2025-11-04T23:54:48.565694Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   ✅ System Control (systemd): systemctl
+[2m2025-11-04T23:54:48.565723Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m 
+💡 Missing Capabilities:
+[2m2025-11-04T23:54:48.565748Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Audio Control (ALSA): sudo apt install alsa-utils
+[2m2025-11-04T23:54:48.565771Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Media Control (MPRIS): sudo apt install playerctl
+[2m2025-11-04T23:54:48.565794Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Brightness Control (X11): sudo apt install xbacklight
+[2m2025-11-04T23:54:48.565829Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Brightness Control: sudo apt install brightnessctl
+[2m2025-11-04T23:54:48.565872Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Screen Lock (GNOME): Pre-installed on GNOME
+[2m2025-11-04T23:54:48.566132Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m   • Window Management: sudo apt install wmctrl
+[2m2025-11-04T23:54:48.566185Z[0m [32m INFO[0m [2mluna::actions::capabilities[0m[2m:[0m ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[2m2025-11-04T23:54:48.566243Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Initializing components...
+[2m2025-11-04T23:54:48.566308Z[0m [32m INFO[0m [2mluna::audio[0m[2m:[0m Initializing audio system...
+[2m2025-11-04T23:54:48.568952Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m ✅ Wake word detector initialized (energy mode)
+[2m2025-11-04T23:54:48.569001Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Keywords: ["hey luna", "okay luna"]
+[2m2025-11-04T23:54:48.569033Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m    Sensitivity: 0.5
+[2m2025-11-04T23:54:48.569077Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m ⚠️  Whisper model not found at: models/whisper-base.bin
+[2m2025-11-04T23:54:48.569104Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m ✅ Speech-to-text initialized (simulated mode)
+[2m2025-11-04T23:54:48.569128Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m    For production, download Whisper model:
+[2m2025-11-04T23:54:48.569163Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m    wget https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+[2m2025-11-04T23:54:48.569188Z[0m [32m INFO[0m [2mluna::audio[0m[2m:[0m ✅ Audio system initialized
+[2m2025-11-04T23:54:48.569216Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Audio system initialized
+[2m2025-11-04T23:54:48.569239Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ⚠️  Note: Running in simulated mode for speech-to-text
+[2m2025-11-04T23:54:48.569264Z[0m [32m INFO[0m [2mluna[0m[2m:[0m    For production, download Whisper model to: models/whisper-base.bin
+[2m2025-11-04T23:54:48.569326Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m Initializing brain system with god-level enhancements...
+[2m2025-11-04T23:54:48.591607Z[0m [32m INFO[0m [2mluna::brain::grammar[0m[2m:[0m ✅ Loaded grammar config version 1.0 with 13 intents
+[2m2025-11-04T23:54:48.621699Z[0m [32m INFO[0m [2mluna::brain::grammar[0m[2m:[0m ✅ Compiled 16 patterns into grammar
+[2m2025-11-04T23:54:48.621771Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m ✅ Brain system initialized with caching, context, providers, and ranking
+[2m2025-11-04T23:54:48.621789Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Brain system initialized
+[2m2025-11-04T23:54:48.680523Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Discovered 105 applications
+[2m2025-11-04T23:54:48.680807Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Added 105 known apps to brain for classification boosting
+[2m2025-11-04T23:54:48.680868Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Task executor initialized
+[2m2025-11-04T23:54:48.680929Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m Initializing TTS system with engine: os
+[2m2025-11-04T23:54:48.680979Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m Initializing TTS synthesizer...
+[2m2025-11-04T23:54:48.681060Z[0m [32m INFO[0m [2mtts::backends::speech_dispatcher[0m[2m:[0m Initializing SpeechDispatcher backend
+[2m2025-11-04T23:54:48.681931Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m ✅ TTS synthesizer initialized with engine: os-tts
+[2m2025-11-04T23:54:48.682018Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m ✅ TTS system initialized
+[2m2025-11-04T23:54:48.682090Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ TTS system initialized
+[2m2025-11-04T23:54:48.682139Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m Starting TTS worker...
+[2m2025-11-04T23:54:48.682232Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m ✅ TTS worker started
+[2m2025-11-04T23:54:48.682333Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ All systems ready
+[2m2025-11-04T23:54:48.682352Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m TTS worker loop started
+[2m2025-11-04T23:54:48.682387Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 👂 LUNA is ready to listen!
+[2m2025-11-04T23:54:48.682583Z[0m [32m INFO[0m [2mluna::audio::capture[0m[2m:[0m Starting audio capture...
+[2m2025-11-04T23:54:48.682656Z[0m [32m INFO[0m [2mluna::audio::capture[0m[2m:[0m Using audio device: default
+[2m2025-11-04T23:54:48.689252Z[0m [32m INFO[0m [2mluna::audio::capture[0m[2m:[0m Audio config: SupportedStreamConfig { channels: 2, sample_rate: SampleRate(44100), buffer_size: Range { min: 1, max: 4194304 }, sample_format: F32 }
+[2m2025-11-04T23:54:48.704878Z[0m [32m INFO[0m [2mluna::audio::capture[0m[2m:[0m ✅ Audio capture started
+[2m2025-11-04T23:54:48.704997Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ Full Integration Complete
+[2m2025-11-04T23:54:48.705036Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Audio capture & wake word detection
+[2m2025-11-04T23:54:48.705067Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Speech-to-text processing
+[2m2025-11-04T23:54:48.705097Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Natural language understanding
+[2m2025-11-04T23:54:48.705128Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Task execution with retry logic
+[2m2025-11-04T23:54:48.705156Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Text-to-speech feedback
+[2m2025-11-04T23:54:48.705184Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Conversation memory
+[2m2025-11-04T23:54:48.705212Z[0m [32m INFO[0m [2mluna[0m[2m:[0m   - Event bus & metrics tracking
+[2m2025-11-04T23:54:48.705277Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🎤 Main event loop starting... (Press Ctrl+C to shutdown)
+[2m2025-11-04T23:54:48.733166Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m 🔊 Speaking (interruptible): "Luna is ready"
+[2m2025-11-04T23:54:49.128324Z[0m [32m INFO[0m [2mluna::audio::wake_word[0m[2m:[0m 🎤 Wake word detected (energy: 0.059)
+[2m2025-11-04T23:54:49.128457Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 👂 Wake word detected!
+[2m2025-11-04T23:54:49.128510Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m ⏹️ Stopping TTS
+[2m2025-11-04T23:54:49.128909Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🎤 Listening for command...
+[2m2025-11-04T23:54:54.141606Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m 💬 Transcribed in 0.00s: "hey luna can you please open chrome and search for rust programming tutorials"
+[2m2025-11-04T23:54:54.141854Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 💬 Command received: "hey luna can you please open chrome and search for rust programming tutorials"
+[2m2025-11-04T23:54:54.141892Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m 🧠 Async processing: "hey luna can you please open chrome and search for rust programming tutorials"
+[2m2025-11-04T23:54:54.156734Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    🔀 Multi-intent detected, using multi-intent parser
+[2m2025-11-04T23:54:54.157157Z[0m [32m INFO[0m [2mluna::brain::command_parser[0m[2m:[0m No pattern matched for: 'hey luna can you please open chrome'
+[2m2025-11-04T23:54:54.157655Z[0m [32m INFO[0m [2mluna::brain::command_parser[0m[2m:[0m Matched intent: FindFile, entities: {"file_name": "rust programming tutorials"}
+[2m2025-11-04T23:54:54.157709Z[0m [32m INFO[0m [2mluna::brain::intent_classifier[0m[2m:[0m Classified intent: Unknown with confidence: 0.00
+[2m2025-11-04T23:54:54.157740Z[0m [32m INFO[0m [2mluna::brain::intent_classifier[0m[2m:[0m Classified intent: FindFile with confidence: 0.95
+[2m2025-11-04T23:54:54.157790Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    Plan: 2 steps (multi-intent)
+[2m2025-11-04T23:54:54.158119Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🧠 Command processed in 16.189846ms
+[2m2025-11-04T23:54:54.158187Z[0m [32m INFO[0m [2mluna[0m[2m:[0m    Intent: Unknown, Confidence: 0.00
+[2m2025-11-04T23:54:54.158251Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ⚠️  Low confidence (0.00 < 0.70), requesting clarification...
+[2m2025-11-04T23:54:54.175313Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m 🔊 Speaking (interruptible): "I'm not confident I understood. Could you clarify?"
+[2m2025-11-04T23:55:02.178853Z[0m [32m INFO[0m [2mluna::audio::speech_to_text[0m[2m:[0m 💬 Transcribed in 0.00s: "hey luna can you please open chrome and search for rust programming tutorials"
+[2m2025-11-04T23:55:02.179096Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 💬 Clarification received: "hey luna can you please open chrome and search for rust programming tutorials"
+[2m2025-11-04T23:55:02.179245Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m 🧠 Async processing: "hey luna can you please open chrome and search for rust programming tutorials"
+[2m2025-11-04T23:55:02.179346Z[0m [32m INFO[0m [2mluna::brain[0m[2m:[0m    ✨ Cache hit! Returning cached plan
+[2m2025-11-04T23:55:02.179363Z[0m [32m INFO[0m [2mluna[0m[2m:[0m 🧠 Clarification processed: Unknown (confidence: 0.00)
+[2m2025-11-04T23:55:02.179420Z[0m [32m INFO[0m [2mluna::actions::executor[0m[2m:[0m Executing plan plan_ede8ca5d-6913-4d19-b0f5-0859171bb734 with 2 steps (dry_run=false)
+[2m2025-11-04T23:55:02.179440Z[0m [32m INFO[0m [2mluna::actions::executor[0m[2m:[0m Executing 1 parallel groups
+[2m2025-11-04T23:55:02.179546Z[0m [31mERROR[0m [2mluna[0m[2m:[0m ❌ Action execution failed: Invalid parameter: Missing query parameter
+[2m2025-11-04T23:55:02.190827Z[0m [32m INFO[0m [2mluna[0m[2m:[0m Shutting down gracefully...
+[2m2025-11-04T23:55:02.192227Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m 🔊 Speaking: "Sorry, I couldn't do that" (len=25)
+[2m2025-11-04T23:55:02.193568Z[0m [32m INFO[0m [2mluna::audio::capture[0m[2m:[0m Audio capture stopped
+[2m2025-11-04T23:55:02.193670Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m Stopping TTS worker...
+[2m2025-11-04T23:55:02.193883Z[0m [32m INFO[0m [2mluna::tts::synthesizer[0m[2m:[0m ⏹️ Stopping TTS
+[2m2025-11-04T23:55:02.194836Z[0m [32m INFO[0m [2mluna::tts[0m[2m:[0m ⏹️ TTS worker stopped
+[2m2025-11-04T23:55:02.196744Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✓ Saved 1 conversation entries to disk
+[2m2025-11-04T23:55:02.196915Z[0m [32m INFO[0m [2mluna[0m[2m:[0m ✅ LUNA shutdown complete

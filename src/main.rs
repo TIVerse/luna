@@ -76,6 +76,14 @@ async fn run_assistant(cli: Cli) -> Result<()> {
 
     info!("✓ Metrics initialized");
 
+    // Capability detection
+    info!("Detecting system capabilities...");
+    let _capabilities = luna::actions::CapabilityDetector::new()
+        .with_event_bus(std::sync::Arc::clone(&event_bus))
+        .detect_all()
+        .await;
+    // Results are already logged by the detector
+
     // Subscribe to events for logging and state tracking
     event_bus
         .subscribe(vec![], move |envelope| {
@@ -109,7 +117,7 @@ async fn run_assistant(cli: Cli) -> Result<()> {
     }
 
     // Brain/NLP System
-    let brain = luna::brain::Brain::new(&config.brain)?;
+    let mut brain = luna::brain::Brain::new(&config.brain)?;
     info!("✓ Brain system initialized");
 
     // Task Executor
@@ -126,6 +134,12 @@ async fn run_assistant(cli: Cli) -> Result<()> {
             tracing::warn!("Failed to discover applications: {}", e);
         }
     }
+    // Add discovered apps to brain for classification boosting
+    for app in app_db_temp.all() {
+        brain.add_known_app(app.name.clone());
+    }
+    info!("✓ Added {} known apps to brain for classification boosting", app_db_temp.len());
+
     let app_db = std::sync::Arc::new(app_db_temp);
     let file_index = std::sync::Arc::new(luna::db::FileIndex::new());
     let app_launcher = luna::actions::AppLauncher::new(app_db);
@@ -153,8 +167,22 @@ async fn run_assistant(cli: Cli) -> Result<()> {
         tts.start().await?;
     }
 
-    // Conversation memory
-    let mut conversation_memory = luna::context::memory::ConversationMemory::with_capacity(100);
+    // Conversation memory - load from disk if available
+    let data_dir = std::path::PathBuf::from(&config.system.data_dir);
+    let conversation_path = data_dir.join("conversation.json");
+    
+    let mut conversation_memory = match luna::context::memory::ConversationMemory::load_from_disk(&conversation_path).await {
+        Ok(memory) => {
+            if !memory.is_empty() {
+                info!("✓ Loaded {} conversation entries from disk", memory.len());
+            }
+            memory
+        }
+        Err(e) => {
+            tracing::warn!("Failed to load conversation history: {}", e);
+            luna::context::memory::ConversationMemory::with_capacity(100)
+        }
+    };
 
     info!("✅ All systems ready");
     info!("👂 LUNA is ready to listen!");
@@ -216,83 +244,40 @@ async fn run_assistant(cli: Cli) -> Result<()> {
                     let _ = tts.interrupt().await;
                 }
 
-                // TODO: Record and transcribe command
-                // For now, simulate with a command counter
+                // Record and transcribe command
                 command_count += 1;
-                let simulated_text = format!("command {}", command_count);
+                info!("🎤 Listening for command...");
+                
+                let _stt_timer = luna::metrics::MetricTimer::new(
+                    std::sync::Arc::clone(&metrics),
+                    luna::metrics::MetricPhase::SpeechToText,
+                );
+                
+                let text = match audio_system
+                    .listen_and_transcribe(config.audio.recording_timeout_secs)
+                    .await
+                {
+                    Ok(t) => t,
+                    Err(e) => {
+                        tracing::error!("❌ Failed to transcribe audio: {}", e);
+                        continue;
+                    }
+                };
+                
+                drop(_stt_timer);
 
-                info!("💬 Command received: \"{}\"", simulated_text);
+                // Skip empty commands
+                if text.trim().is_empty() {
+                    info!("⚠️  No speech detected, continuing...");
+                    continue;
+                }
+
+                info!("💬 Command received: \"{}\"", text);
 
                 // Process command through brain
                 let start_time = std::time::Instant::now();
-                match brain.process_async(&simulated_text).await {
-                    Ok(plan) => {
-                        let processing_time = start_time.elapsed();
-                        info!("🧠 Command processed in {:?}", processing_time);
-                        info!(
-                            "   Intent: {:?}, Confidence: {:.2}",
-                            plan.classification.intent, plan.classification.confidence
-                        );
-
-                        // Execute the plan
-                        match executor.execute_plan(plan.clone()).await {
-                            Ok(response) => {
-                                let total_time = start_time.elapsed();
-                                info!("✅ Action completed in {:?}: {}", total_time, response);
-
-                                // Speak response
-                                if let Some(ref tts) = tts_system {
-                                    let _ = tts
-                                        .speak_with(luna::tts::MessageKind::Confirmation, &response)
-                                        .await;
-                                }
-
-                                // Record in conversation memory
-                                conversation_memory.add_entry(
-                                    luna::context::ConversationEntry::new(
-                                        simulated_text.clone(),
-                                        plan.classification.intent,
-                                        response.clone(),
-                                        true,
-                                    ),
-                                );
-
-                                // Track metrics
-                                metrics.record_command_success();
-                                metrics.record_latency(
-                                    luna::metrics::MetricPhase::Parsing,
-                                    processing_time,
-                                );
-                            }
-                            Err(e) => {
-                                tracing::error!("❌ Action execution failed: {}", e);
-
-                                // Speak error message
-                                if let Some(ref tts) = tts_system {
-                                    let _ = tts
-                                        .speak_with(
-                                            luna::tts::MessageKind::Error,
-                                            "Sorry, I couldn't do that",
-                                        )
-                                        .await;
-                                }
-
-                                // Record failure in conversation memory
-                                conversation_memory.add_entry(
-                                    luna::context::ConversationEntry::new(
-                                        simulated_text.clone(),
-                                        plan.classification.intent,
-                                        format!("Error: {}", e),
-                                        false,
-                                    ),
-                                );
-
-                                // Track metrics
-                                metrics.record_command_failure();
-                                metrics.record_error("execution_failed", "executor");
-                            }
-                        }
-                    }
+                let mut final_plan = match brain.process_async(&text).await {
+                    Ok(plan) => plan,
                     Err(e) => {
                         tracing::warn!("⚠️  Command not understood: {}", e);
 
@@ -305,6 +290,145 @@ async fn run_assistant(cli: Cli) -> Result<()> {
                                 )
                                 .await;
                         }
+                        continue;
+                    }
+                };
+
+                let processing_time = start_time.elapsed();
+                info!("🧠 Command processed in {:?}", processing_time);
+                info!(
+                    "   Intent: {:?}, Confidence: {:.2}",
+                    final_plan.classification.intent, final_plan.classification.confidence
+                );
+
+                // Check confidence and request clarification if needed
+                if final_plan.classification.confidence < config.brain.confidence_threshold {
+                    info!(
+                        "⚠️  Low confidence ({:.2} < {:.2}), requesting clarification...",
+                        final_plan.classification.confidence, config.brain.confidence_threshold
+                    );
+
+                    // Ask for clarification
+                    if let Some(ref tts) = tts_system {
+                        let _ = tts
+                            .speak_with(
+                                luna::tts::MessageKind::Info,
+                                "I'm not confident I understood. Could you clarify?",
+                            )
+                            .await;
+                    }
+
+                    // Listen for clarification (max 8 seconds)
+                    match audio_system.listen_and_transcribe(8).await {
+                        Ok(clarification_text) if !clarification_text.trim().is_empty() => {
+                            info!("💬 Clarification received: \"{}\"", clarification_text);
+
+                            // Re-process with clarification
+                            match brain.process_async(&clarification_text).await {
+                                Ok(new_plan) => {
+                                    info!(
+                                        "🧠 Clarification processed: {:?} (confidence: {:.2})",
+                                        new_plan.classification.intent,
+                                        new_plan.classification.confidence
+                                    );
+
+                                    // Publish clarification event
+                                    event_bus
+                                        .publish(luna::LunaEvent::ClarificationAnswered {
+                                            original_command: text.clone(),
+                                            clarification: clarification_text.clone(),
+                                            resolved_command: clarification_text.clone(),
+                                        })
+                                        .await;
+
+                                    final_plan = new_plan;
+                                }
+                                Err(e) => {
+                                    tracing::warn!("⚠️  Clarification also unclear: {}", e);
+                                    if let Some(ref tts) = tts_system {
+                                        let _ = tts
+                                            .speak_with(
+                                                luna::tts::MessageKind::Error,
+                                                "Sorry, I still don't understand",
+                                            )
+                                            .await;
+                                    }
+                                    continue;
+                                }
+                            }
+                        }
+                        Ok(_) => {
+                            info!("⚠️  No clarification provided");
+                            if let Some(ref tts) = tts_system {
+                                let _ = tts
+                                    .speak_with(luna::tts::MessageKind::Info, "Okay, never mind")
+                                    .await;
+                            }
+                            continue;
+                        }
+                        Err(e) => {
+                            tracing::error!("❌ Failed to capture clarification: {}", e);
+                            continue;
+                        }
+                    }
+                }
+
+                // Execute the plan
+                match executor.execute_plan(final_plan.clone()).await {
+                    Ok(response) => {
+                        let total_time = start_time.elapsed();
+                        info!("✅ Action completed in {:?}: {}", total_time, response);
+
+                        // Speak response
+                        if let Some(ref tts) = tts_system {
+                            let _ = tts
+                                .speak_with(luna::tts::MessageKind::Confirmation, &response)
+                                .await;
+                        }
+
+                        // Record in conversation memory
+                        conversation_memory.add_entry(
+                            luna::context::ConversationEntry::new(
+                                text.clone(),
+                                final_plan.classification.intent,
+                                response.clone(),
+                                true,
+                            ),
+                        );
+
+                        // Track metrics
+                        metrics.record_command_success();
+                        metrics.record_latency(
+                            luna::metrics::MetricPhase::Parsing,
+                            processing_time,
+                        );
+                    }
+                    Err(e) => {
+                        tracing::error!("❌ Action execution failed: {}", e);
+
+                        // Speak error message
+                        if let Some(ref tts) = tts_system {
+                            let _ = tts
+                                .speak_with(
+                                    luna::tts::MessageKind::Error,
+                                    "Sorry, I couldn't do that",
+                                )
+                                .await;
+                        }
+
+                        // Record failure in conversation memory
+                        conversation_memory.add_entry(
+                            luna::context::ConversationEntry::new(
+                                text.clone(),
+                                final_plan.classification.intent,
+                                format!("Error: {}", e),
+                                false,
+                            ),
+                        );
+
+                        // Track metrics
+                        metrics.record_command_failure();
+                        metrics.record_error("execution_failed", "executor");
                     }
                 }
             }
@@ -329,6 +453,13 @@ async fn run_assistant(cli: Cli) -> Result<()> {
     // Stop TTS system
     if let Some(ref mut tts) = tts_system {
         tts.stop().await;
+    }
+
+    // Save conversation memory to disk
+    if let Err(e) = conversation_memory.save_to_disk(&conversation_path).await {
+        tracing::error!("Failed to save conversation history: {}", e);
+    } else {
+        info!("✓ Saved {} conversation entries to disk", conversation_memory.len());
     }
 
     // Publish shutdown event

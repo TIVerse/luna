@@ -20,12 +20,50 @@ A privacy-first, offline voice-controlled desktop assistant written in Rust.
 - Database schemas for apps and files
 - Complete project structure with module stubs
 
-**Phase 2: Audio System** 🚧 Pending
-**Phase 3: Brain/NLP** 🚧 Pending
-**Phase 4: Action Execution** 🚧 Pending
-**Phase 5: OS Integration** 🚧 Pending
-**Phase 6: TTS & Context** 🚧 Pending
-**Phase 7: Integration** 🚧 Pending
+**Phase 2: Audio System** ✅ **COMPLETE**
+- Real-time audio capture with lock-free ring buffers
+- Wake word detection (Porcupine + energy-based)
+- Voice Activity Detection (WebRTC VAD)
+- Speech-to-text integration (Whisper + simulation mode)
+- Audio processing pipeline (noise gate, normalization)
+- **P0.1**: STT wiring in runtime loop with metrics
+
+**Phase 3: Brain/NLP** ✅ **ENHANCED**
+- Command parsing and intent classification
+- Entity extraction with typed entities
+- Task planning with dependency management
+- **P0.2**: Multi-intent parsing (parallel + temporal coordination)
+- **P0.3**: App discovery integration for classification boosting
+- **P0.5**: Declarative grammar YAML with hot-reload
+- Context awareness and conversation tracking
+- Caching system for performance
+
+**Phase 4: Action Execution** ✅ **COMPLETE**
+- Task executor with retry logic
+- App launching and closing
+- File search and management
+- System control (volume, lock, shutdown)
+- Media control integration
+- **P0.4**: Capability detection at startup
+
+**Phase 5: OS Integration** ✅ **COMPLETE**
+- Cross-platform OS abstractions
+- Application discovery (Linux, macOS, Windows)
+- System control backends
+- Window management APIs
+
+**Phase 6: TTS & Context** ✅ **COMPLETE**
+- Text-to-speech system with message types
+- **P0.7**: Conversation memory persistence (JSON)
+- **P0.8**: Clarification loop for low-confidence commands
+- Context resolution and reference tracking
+
+**Phase 7: Integration** ✅ **COMPLETE**
+- Full runtime loop with all components
+- Event bus with pub-sub architecture
+- **P0.6**: Comprehensive metrics instrumentation
+- Configuration hot-reload
+- CLI tools for diagnostics and testing
 
 ## Quick Start
 
@@ -64,9 +102,30 @@ Edit `config/default.toml` to customize settings:
 [audio]
 wake_words = ["hey luna", "okay luna"]
 sample_rate = 16000
+recording_timeout_secs = 10
+
+[brain]
+confidence_threshold = 0.7
+whisper_model_path = "models/ggml-base.en.bin"
 
 [system]
 log_level = "info"
+data_dir = "~/.local/share/luna"
+```
+
+### Grammar Patterns
+
+Customize intent patterns in `config/brain_patterns.yaml`:
+
+```yaml
+version: "1.0"
+intents:
+  - name: LaunchApp
+    priority: 100
+    patterns:
+      - pattern: "^(?:open|launch|start|run)\\s+(.+)$"
+        entities:
+          app_name: "$1"
 ```
 
 ## Project Structure
@@ -92,6 +151,33 @@ luna/
 └── docs/                    # Documentation
 
 ✅ = Implemented in Phase 1
+```
+
+## CLI Tools
+
+LUNA includes powerful CLI tools for testing and diagnostics:
+
+```bash
+# System diagnostics
+luna doctor
+
+# Brain/NLP tools
+luna brain parse "open chrome"
+luna brain classify "play music"
+luna brain plan "open chrome and play music" --preview
+luna brain grammar-reload
+
+# Audio tools
+luna audio devices
+luna audio monitor --duration 10
+luna audio test-wake --duration 30
+
+# Index management
+luna index --apps --files
+
+# Metrics and events
+luna metrics --detailed
+luna events --tail
 ```
 
 ## Development

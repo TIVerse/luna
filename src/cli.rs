@@ -64,6 +64,35 @@ pub enum AudioCommands {
     Stats,
 }
 
+/// Brain/NLP system subcommands
+#[derive(Subcommand, Debug)]
+pub enum BrainCommands {
+    /// Parse text into structured command
+    Parse {
+        /// Text to parse
+        text: String,
+    },
+
+    /// Classify text and show intent
+    Classify {
+        /// Text to classify
+        text: String,
+    },
+
+    /// Plan tasks from text
+    Plan {
+        /// Text to plan
+        text: String,
+
+        /// Show detailed preview
+        #[arg(short, long)]
+        preview: bool,
+    },
+
+    /// Reload grammar from YAML file
+    GrammarReload,
+}
+
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     /// Run system diagnostics
@@ -118,6 +147,12 @@ pub enum Commands {
     Audio {
         #[command(subcommand)]
         command: AudioCommands,
+    },
+
+    /// Brain/NLP system tools
+    Brain {
+        #[command(subcommand)]
+        command: BrainCommands,
     },
 
     /// Validate configuration
@@ -809,6 +844,190 @@ pub async fn run_audio(command: AudioCommands) -> Result<()> {
     }
 }
 
+/// Run brain parse command
+pub async fn run_brain_parse(text: String) -> Result<()> {
+    use crate::brain::Brain;
+    use crate::config::BrainConfig;
+
+    println!("\n🧠 Parsing Command\n");
+    println!("Input: \"{}\"", text);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+    let config = BrainConfig::default();
+    let brain = Brain::new(&config)?;
+    
+    match brain.parse(&text) {
+        Ok(parsed) => {
+            println!("Intent: {:?}", parsed.intent);
+            println!("\nEntities:");
+            for (key, value) in &parsed.entities {
+                println!("  {}: {}", key, value);
+            }
+            println!("\n✅ Parse successful");
+        }
+        Err(e) => {
+            println!("❌ Parse failed: {}", e);
+        }
+    }
+
+    Ok(())
+}
+
+/// Run brain classify command
+pub async fn run_brain_classify(text: String) -> Result<()> {
+    use crate::brain::Brain;
+    use crate::config::BrainConfig;
+
+    println!("\n🧠 Classifying Command\n");
+    println!("Input: \"{}\"", text);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+    let config = BrainConfig::default();
+    let brain = Brain::new(&config)?;
+    
+    let parsed = brain.parse(&text)?;
+    match brain.classify(&parsed) {
+        Ok(classification) => {
+            println!("Intent: {:?}", classification.intent);
+            println!("Confidence: {:.2}", classification.confidence);
+            println!("\nEntities:");
+            for (key, value) in &classification.entities {
+                println!("  {}: {}", key, value);
+            }
+            
+            if !classification.alternatives.is_empty() {
+                println!("\nAlternatives:");
+                for (alt_intent, conf) in &classification.alternatives {
+                    println!("  {:?} (confidence: {:.2})", alt_intent, conf);
+                }
+            }
+            
+            println!("\n✅ Classification successful");
+        }
+        Err(e) => {
+            println!("❌ Classification failed: {}", e);
+        }
+    }
+
+    Ok(())
+}
+
+/// Run brain plan command
+pub async fn run_brain_plan(text: String, preview: bool) -> Result<()> {
+    use crate::brain::Brain;
+    use crate::config::BrainConfig;
+
+    println!("\n🧠 Planning Tasks\n");
+    println!("Input: \"{}\"", text);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+    let config = BrainConfig::default();
+    let brain = Brain::new(&config)?;
+    
+    match brain.process_async(&text).await {
+        Ok(plan) => {
+            println!("Intent: {:?}", plan.classification.intent);
+            println!("Confidence: {:.2}", plan.classification.confidence);
+            println!("Steps: {}", plan.steps.len());
+            println!("Valid: {}", plan.is_valid);
+            
+            println!("\nTask Steps:");
+            for (i, step) in plan.steps.iter().enumerate() {
+                println!("  {}. {:?}", i + 1, step.action);
+                for (key, value) in &step.params {
+                    println!("     {}: {}", key, value);
+                }
+                if let Some(group) = step.parallel_group {
+                    println!("     (parallel group: {})", group);
+                }
+            }
+            
+            if !plan.dependencies.is_empty() {
+                println!("\nDependencies:");
+                for (from, to) in &plan.dependencies {
+                    println!("  Step {} → Step {}", from, to);
+                }
+            }
+            
+            if !plan.parallel_groups.is_empty() {
+                println!("\nParallel Groups:");
+                for (i, group) in plan.parallel_groups.iter().enumerate() {
+                    println!("  Group {}: steps {:?}", i, group);
+                }
+            }
+            
+            if preview {
+                println!("\n📋 Preview Mode:");
+                println!("  [DRY RUN] Would execute {} steps", plan.steps.len());
+                for (i, step) in plan.steps.iter().enumerate() {
+                    println!("  [{}] {:?} with params: {:?}", i + 1, step.action, step.params);
+                }
+            }
+            
+            println!("\n✅ Plan created successfully");
+        }
+        Err(e) => {
+            println!("❌ Planning failed: {}", e);
+        }
+    }
+
+    Ok(())
+}
+
+/// Run brain grammar reload command
+pub async fn run_brain_grammar_reload() -> Result<()> {
+    use crate::brain::Brain;
+    use crate::config::BrainConfig;
+    use crate::events::EventBus;
+    use std::sync::Arc;
+
+    println!("\n🧠 Reloading Grammar\n");
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+    let config = BrainConfig::default();
+    let mut brain = Brain::new(&config)?;
+    
+    // Create event bus to capture the reload event
+    let event_bus = Arc::new(EventBus::new());
+    let _handle = event_bus.start_processing().await;
+    
+    match brain.reload_grammar() {
+        Ok(()) => {
+            println!("✅ Grammar reloaded successfully");
+            
+            // Publish event
+            event_bus.publish(crate::events::LunaEvent::GrammarReloaded {
+                pattern_count: 0, // We don't have this info readily available
+                timestamp: std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs(),
+            }).await;
+            
+            if let Some(grammar) = brain.grammar() {
+                println!("  Loaded grammar from config/brain_patterns.yaml");
+            } else {
+                println!("  Using built-in patterns (no grammar file found)");
+            }
+        }
+        Err(e) => {
+            println!("❌ Grammar reload failed: {}", e);
+        }
+    }
+
+    Ok(())
+}
+
+/// Run brain command
+pub async fn run_brain(command: BrainCommands) -> Result<()> {
+    match command {
+        BrainCommands::Parse { text } => run_brain_parse(text).await,
+        BrainCommands::Classify { text } => run_brain_classify(text).await,
+        BrainCommands::Plan { text, preview } => run_brain_plan(text, preview).await,
+        BrainCommands::GrammarReload => run_brain_grammar_reload().await,
+    }
+}
+
 /// Run the CLI based on parsed arguments
 pub async fn run_cli(cli: Cli) -> Result<()> {
     match cli.command {
@@ -822,6 +1041,7 @@ pub async fn run_cli(cli: Cli) -> Result<()> {
         Some(Commands::Metrics { detailed, output }) => run_metrics(detailed, output).await,
         Some(Commands::Config { show, validate }) => run_config(show, validate).await,
         Some(Commands::Audio { command }) => run_audio(command).await,
+        Some(Commands::Brain { command }) => run_brain(command).await,
         None => {
             println!("No command specified. Use --help for usage information.");
             Ok(())

@@ -331,6 +331,176 @@ impl TaskPlanner {
         dependencies
     }
 
+    /// Plan multiple intents with coordination
+    ///
+    /// # Arguments
+    /// * `items` - Vector of (ClassificationResult, Option<Duration>) tuples
+    /// * `coordination` - How the intents should be coordinated
+    ///
+    /// # Returns
+    /// A single TaskPlan with merged steps and parallel groups
+    pub fn plan_multi(
+        &self,
+        items: Vec<(ClassificationResult, Option<std::time::Duration>)>,
+        coordination: crate::brain::multi_intent::CoordinationType,
+    ) -> TaskPlan {
+        use crate::brain::multi_intent::CoordinationType;
+
+        let mut all_steps = Vec::new();
+        let mut dependencies = Vec::new();
+        let mut parallel_groups = Vec::new();
+        let mut step_offset = 0;
+
+        // Get first classification for overall plan metadata
+        let first_classification = if let Some((first, _)) = items.first() {
+            first.clone()
+        } else {
+            // Empty items, return empty plan
+            return TaskPlan {
+                steps: Vec::new(),
+                dependencies: Vec::new(),
+                classification: ClassificationResult {
+                    intent: crate::brain::IntentType::Unknown,
+                    confidence: 0.0,
+                    entities: std::collections::HashMap::new(),
+                    alternatives: Vec::new(),
+                },
+                parallel_groups: Vec::new(),
+                is_valid: true,
+                validation_errors: Vec::new(),
+            };
+        };
+
+        match coordination {
+            CoordinationType::Parallel => {
+                // All items can run in parallel
+                let mut parallel_group = Vec::new();
+
+                for (classification, temporal) in items {
+                    // Add wait step if temporal modifier present
+                    if let Some(duration) = temporal {
+                        let wait_step = ActionStep {
+                            action: ActionType::Wait,
+                            params: {
+                                let mut params = std::collections::HashMap::new();
+                                params.insert("duration".to_string(), duration.as_secs().to_string());
+                                params
+                            },
+                            step_number: step_offset,
+                            preconditions: vec![],
+                            postconditions: vec![Postcondition::Success],
+                            parallel_group: None,
+                        };
+                        all_steps.push(wait_step);
+                        step_offset += 1;
+                    }
+
+                    // Add the action steps
+                    let mut segment_steps = self.create_steps(&classification);
+                    for step in &mut segment_steps {
+                        step.step_number = step_offset;
+                        step.parallel_group = Some(0); // All in group 0
+                        parallel_group.push(step_offset);
+                        step_offset += 1;
+                    }
+                    all_steps.extend(segment_steps);
+                }
+
+                if !parallel_group.is_empty() {
+                    parallel_groups.push(parallel_group);
+                }
+            }
+            CoordinationType::Sequential | CoordinationType::Temporal => {
+                // Items run sequentially
+                for (classification, temporal) in items {
+                    // Add wait step if temporal modifier present
+                    if let Some(duration) = temporal {
+                        let wait_step = ActionStep {
+                            action: ActionType::Wait,
+                            params: {
+                                let mut params = std::collections::HashMap::new();
+                                params.insert("duration".to_string(), duration.as_secs().to_string());
+                                params
+                            },
+                            step_number: step_offset,
+                            preconditions: vec![],
+                            postconditions: vec![Postcondition::Success],
+                            parallel_group: None,
+                        };
+                        all_steps.push(wait_step);
+                        
+                        // Add dependency: previous step -> wait step
+                        if step_offset > 0 {
+                            dependencies.push((step_offset - 1, step_offset));
+                        }
+                        step_offset += 1;
+                    }
+
+                    // Add the action steps
+                    let mut segment_steps = self.create_steps(&classification);
+                    for step in &mut segment_steps {
+                        step.step_number = step_offset;
+                        
+                        // Add dependency from previous step
+                        if step_offset > 0 {
+                            dependencies.push((step_offset - 1, step_offset));
+                        }
+                        step_offset += 1;
+                    }
+                    all_steps.extend(segment_steps);
+                }
+            }
+            CoordinationType::Conditional => {
+                // For now, treat as sequential (conditional logic not yet implemented)
+                for (classification, temporal) in items {
+                    if let Some(duration) = temporal {
+                        let wait_step = ActionStep {
+                            action: ActionType::Wait,
+                            params: {
+                                let mut params = std::collections::HashMap::new();
+                                params.insert("duration".to_string(), duration.as_secs().to_string());
+                                params
+                            },
+                            step_number: step_offset,
+                            preconditions: vec![],
+                            postconditions: vec![Postcondition::Success],
+                            parallel_group: None,
+                        };
+                        all_steps.push(wait_step);
+                        if step_offset > 0 {
+                            dependencies.push((step_offset - 1, step_offset));
+                        }
+                        step_offset += 1;
+                    }
+
+                    let mut segment_steps = self.create_steps(&classification);
+                    for step in &mut segment_steps {
+                        step.step_number = step_offset;
+                        if step_offset > 0 {
+                            dependencies.push((step_offset - 1, step_offset));
+                        }
+                        step_offset += 1;
+                    }
+                    all_steps.extend(segment_steps);
+                }
+            }
+        }
+
+        let mut plan = TaskPlan {
+            steps: all_steps,
+            dependencies,
+            classification: first_classification,
+            parallel_groups,
+            is_valid: true,
+            validation_errors: Vec::new(),
+        };
+
+        // Validate the plan
+        self.validate_plan(&mut plan);
+
+        plan
+    }
+
     /// Check if plan is executable
     pub fn is_executable(&self, plan: &TaskPlan) -> bool {
         // Plan is executable if it has at least one step

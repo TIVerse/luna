@@ -124,6 +124,76 @@ where
     pub fn event_bus(&self) -> &Option<Arc<EventBus>> {
         &self.event_bus
     }
+
+    /// Listen and transcribe command audio
+    ///
+    /// Records audio for up to `max_secs` seconds, processes it, and transcribes.
+    /// Publishes `CommandTranscribed` event if event bus is configured.
+    ///
+    /// # Arguments
+    /// * `max_secs` - Maximum recording duration in seconds
+    ///
+    /// # Returns
+    /// Transcribed text from the audio
+    pub async fn listen_and_transcribe(&mut self, max_secs: u64) -> crate::error::Result<String>
+    where
+        C: AudioCaptureInterface,
+    {
+        // 1. Collect audio from the stream for specified duration
+        let mut audio = Vec::new();
+        let mut rx = self.capture.get_audio_stream();
+        let timeout = tokio::time::Duration::from_secs(max_secs);
+        let start = tokio::time::Instant::now();
+
+        loop {
+            tokio::select! {
+                Ok(samples) = rx.recv() => {
+                    audio.extend(samples);
+                    
+                    // Stop on silence after at least 1 second of audio
+                    if audio.len() > 48000 && start.elapsed() > tokio::time::Duration::from_secs(1) {
+                        let last_chunk_size = 4800;
+                        if audio.len() >= last_chunk_size {
+                            let last_chunk = &audio[audio.len() - last_chunk_size..];
+                            let rms: f32 = {
+                                let sum: f32 = last_chunk.iter().map(|&s| s * s).sum();
+                                (sum / last_chunk.len() as f32).sqrt()
+                            };
+                            if rms < 0.01 {
+                                break;
+                            }
+                        }
+                    }
+                }
+                _ = tokio::time::sleep_until(start + timeout) => {
+                    break;
+                }
+            }
+        }
+
+        if audio.is_empty() {
+            return Ok(String::new());
+        }
+
+        // 2. Process audio (noise gate + normalize)
+        let mut processed = audio.clone();
+        self.processor.apply_noise_gate(&mut processed);
+        self.processor.normalize(&mut processed);
+
+        // 3. Transcribe
+        let text = self.stt.transcribe(&processed).await?;
+
+        // 4. Publish event if event bus is configured
+        if let Some(ref bus) = self.event_bus {
+            bus.publish(crate::events::LunaEvent::CommandTranscribed {
+                text: text.clone(),
+                confidence: 1.0, // Best effort confidence; STT currently doesn't provide this
+            })
+            .await;
+        }
+
+        Ok(text)
+    }
 }
 
 /// Type alias for production audio system
